@@ -127,16 +127,19 @@ export async function fetchWeather(
       dust: '보통',
       pm10: 35,
       pm25: 15,
+      rainChance: 10,
     };
   }
   try {
-    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr`;
-    const weatherRes = await fetch(weatherUrl);
-    const weatherData = await weatherRes.json();
+    const [weatherRes, airRes, forecastRes] = await Promise.all([
+      fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr`),
+      fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}`),
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr&cnt=4`),
+    ]);
 
-    const airUrl = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}`;
-    const airRes = await fetch(airUrl);
+    const weatherData = await weatherRes.json();
     const airData = await airRes.json();
+    const forecastData = await forecastRes.json();
 
     const aqi = airData?.list?.[0]?.main?.aqi ?? 2;
     const pm10 = Math.round(airData?.list?.[0]?.components?.pm10 ?? 0);
@@ -149,6 +152,10 @@ export async function fetchWeather(
       5: '위험',
     };
 
+    // 강수확률: forecast의 첫 몇 개 시간대 중 최댓값
+    const pops = (forecastData?.list || []).map((item: { pop?: number }) => Math.round((item.pop ?? 0) * 100));
+    const rainChance = pops.length > 0 ? Math.max(...pops) : 0;
+
     return {
       temp: Math.round(weatherData.main.temp),
       feelsLike: Math.round(weatherData.main.feels_like),
@@ -157,6 +164,7 @@ export async function fetchWeather(
       dust: dustLabels[aqi] || '보통',
       pm10,
       pm25,
+      rainChance,
     };
   } catch {
     return null;

@@ -34,6 +34,7 @@ export interface WeatherData {
   dust: string;
   pm10: number;
   pm25: number;
+  rainChance: number;
 }
 
 export interface MealData {

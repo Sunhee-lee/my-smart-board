@@ -22,6 +22,24 @@ function getDisplayName(s: Settings): string {
   return '';
 }
 
+function formatClock(d: Date): string {
+  const h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2, '0');
+  const s = String(d.getSeconds()).padStart(2, '0');
+  const ampm = h < 12 ? '오전' : '오후';
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${ampm} ${h12}:${m}:${s}`;
+}
+
+function recordUniqueVisit(): boolean {
+  const VISIT_KEY = 'smart-board-visit-date';
+  const today = new Date().toISOString().slice(0, 10);
+  const lastVisit = localStorage.getItem(VISIT_KEY);
+  if (lastVisit === today) return false;
+  localStorage.setItem(VISIT_KEY, today);
+  return true;
+}
+
 export default function Dashboard() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -29,12 +47,27 @@ export default function Dashboard() {
   const [meal, setMeal] = useState<MealData | null>(null);
   const [timetable, setTimetable] = useState<TimetableItem[]>([]);
   const [events, setEvents] = useState<SchoolEvent[]>([]);
+  const [clock, setClock] = useState('');
+  const [showCounter, setShowCounter] = useState(false);
   const [loading, setLoading] = useState({
     weather: true,
     meal: true,
     timetable: true,
     events: true,
   });
+
+  // 실시간 시계
+  useEffect(() => {
+    setClock(formatClock(new Date()));
+    const timer = setInterval(() => setClock(formatClock(new Date())), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 고유 방문자 카운터
+  useEffect(() => {
+    const isNew = recordUniqueVisit();
+    setShowCounter(isNew);
+  }, []);
 
   useEffect(() => {
     setSettings(loadSettings());
@@ -110,13 +143,20 @@ export default function Dashboard() {
           <h1 className={`font-title text-xl ${theme.headerTitle}`}>
             {displayName ? `${displayName}의 스마트 보드` : '스마트 보드'}
           </h1>
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className={`p-2 rounded-full ${theme.headerHover} transition-colors`}
-            aria-label="설정"
-          >
-            <SettingsIcon className={`w-5 h-5 ${theme.headerIcon}`} />
-          </button>
+          <div className="flex items-center gap-3">
+            {clock && (
+              <span className={`text-sm font-medium tabular-nums ${theme.headerIcon}`}>
+                {clock}
+              </span>
+            )}
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className={`p-2 rounded-full ${theme.headerHover} transition-colors`}
+              aria-label="설정"
+            >
+              <SettingsIcon className={`w-5 h-5 ${theme.headerIcon}`} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -142,15 +182,21 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* 방문자 카운터 - 하단 구석 */}
+      {/* 방문자 카운터 - 하단 구석 (하루 1회만 카운팅) */}
       <footer className="max-w-6xl mx-auto px-4 py-4 flex justify-end">
         <div className="opacity-40 hover:opacity-70 transition-opacity">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://hits.sh/smart-school-dashboard.vercel.app.svg?view=today-total&style=flat-square&label=today&color=888888&labelColor=eeeeee"
-            alt="오늘 방문자"
-            className="h-5"
-          />
+          {showCounter ? (
+            /* 새 방문자: 이미지 로드하여 카운트 증가 */
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src="https://hits.sh/smart-school-dashboard.vercel.app.svg?view=today-total&style=flat-square&label=today&color=888888&labelColor=eeeeee"
+              alt="오늘 방문자"
+              className="h-5"
+            />
+          ) : (
+            /* 재방문: 카운트 안 올라가도록 이미지 로드 안 함 */
+            <span className="text-[10px] text-gray-400">visited today</span>
+          )}
         </div>
       </footer>
 

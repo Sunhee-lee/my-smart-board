@@ -1,6 +1,6 @@
 'use client';
 
-import { CloudSun, Thermometer, Wind, Sun, CloudRain, CloudSnow, Cloud, CloudLightning, CloudDrizzle, Shirt } from 'lucide-react';
+import { CloudSun, Thermometer, Wind, Sun, CloudRain, CloudSnow, Cloud, CloudLightning, CloudDrizzle, Shirt, Droplets } from 'lucide-react';
 import { WeatherData } from '@/types';
 import { ThemeConfig } from '@/lib/theme';
 
@@ -15,16 +15,17 @@ const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 function getWeatherEmoji(icon: string): string {
   if (!icon) return '🌤';
   const code = icon.slice(0, 2);
+  const isNight = icon.endsWith('n');
   switch (code) {
-    case '01': return '☀️';
-    case '02': return '⛅';
-    case '03': return '☁️';
-    case '04': return '🌥️';
-    case '09': return '🌧️';
-    case '10': return '☔';
-    case '11': return '⛈️';
-    case '13': return '⛄';
-    case '50': return '🌫️';
+    case '01': return isNight ? '🌙' : '🌞';
+    case '02': return '🌤';
+    case '03': return '☁';
+    case '04': return '☁';
+    case '09': return '🌧';
+    case '10': return '🌧';
+    case '11': return '🌩';
+    case '13': return '☃';
+    case '50': return '🌁';
     default: return '🌤';
   }
 }
@@ -146,6 +147,14 @@ export default function WeatherCard({ weather, loading, theme }: WeatherCardProp
               </span>
               <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-medium ${dustBadgeColor(weather.pm25, 'pm25')}`}>
                 초미세 {weather.pm25}
+              </span>
+            </div>
+
+            {/* 강수확률 */}
+            <div className="flex items-center gap-2">
+              <Droplets className="w-4 h-4 text-blue-400" />
+              <span className="text-sm text-gray-700">
+                강수확률 <strong className={weather.rainChance >= 60 ? 'text-blue-500' : weather.rainChance >= 30 ? 'text-sky-500' : 'text-gray-500'}>{weather.rainChance}%</strong>
               </span>
             </div>
 
