@@ -34,15 +34,15 @@ function recordVisit() {
   localStorage.setItem(STATS_KEY, JSON.stringify(stats));
 }
 
-// 페이지 로드 시 기록 (하루 1회)
+// 페이지 로드마다 방문 기록, 기기당 고유방문자는 1회만
 export function recordUniqueVisit(): boolean {
-  const VISIT_KEY = 'smart-board-visit-date';
-  const today = new Date().toISOString().slice(0, 10);
-  const lastVisit = localStorage.getItem(VISIT_KEY);
-  if (lastVisit === today) return false;
-  localStorage.setItem(VISIT_KEY, today);
+  const DEVICE_KEY = 'smart-board-device-id';
+  const isNewDevice = !localStorage.getItem(DEVICE_KEY);
+  if (isNewDevice) {
+    localStorage.setItem(DEVICE_KEY, crypto.randomUUID());
+  }
   recordVisit();
-  return true;
+  return isNewDevice;
 }
 
 function getLast7Days(): { date: string; label: string; count: number }[] {
@@ -71,11 +71,17 @@ function getTotal(): number {
   return Object.values(stats).reduce((sum: number, v) => sum + (v as number), 0);
 }
 
+function getUniqueDeviceCount(): number {
+  // 이 기기가 등록되어 있으면 1, 없으면 0
+  return localStorage.getItem('smart-board-device-id') ? 1 : 0;
+}
+
 export default function VisitorStatsModal({ isOpen, onClose }: VisitorStatsModalProps) {
   if (!isOpen) return null;
 
   const last7 = getLast7Days();
   const total = getTotal();
+  const uniqueDevices = getUniqueDeviceCount();
   const weekTotal = last7.reduce((s, d) => s + d.count, 0);
   const maxCount = Math.max(...last7.map((d) => d.count), 1);
 
@@ -98,7 +104,7 @@ export default function VisitorStatsModal({ isOpen, onClose }: VisitorStatsModal
 
         <div className="p-4 space-y-4">
           {/* 요약 */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             <div className="bg-blue-50 rounded-xl p-3 text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Calendar className="w-3.5 h-3.5 text-blue-400" />
@@ -109,9 +115,16 @@ export default function VisitorStatsModal({ isOpen, onClose }: VisitorStatsModal
             <div className="bg-purple-50 rounded-xl p-3 text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Users className="w-3.5 h-3.5 text-purple-400" />
-                <span className="text-[10px] text-purple-500 font-medium">전체 누적</span>
+                <span className="text-[10px] text-purple-500 font-medium">전체 방문</span>
               </div>
               <p className="text-2xl font-bold text-purple-600">{total}</p>
+            </div>
+            <div className="bg-green-50 rounded-xl p-3 text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Users className="w-3.5 h-3.5 text-green-400" />
+                <span className="text-[10px] text-green-500 font-medium">이 기기</span>
+              </div>
+              <p className="text-2xl font-bold text-green-600">{uniqueDevices}</p>
             </div>
           </div>
 
