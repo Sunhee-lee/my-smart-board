@@ -128,7 +128,7 @@ export default function Dashboard() {
           <WeatherCard weather={weather} loading={loading.weather} />
 
           {/* 우상단: 급식 */}
-          <MealCard meal={meal} loading={loading.meal} />
+          <MealCard meal={meal} loading={loading.meal} hasSchool={!!settings.schoolCode} />
 
           {/* 좌중단: 학원/방과후 */}
           <ScheduleCard academies={todaySchedule.academies} />
@@ -137,10 +137,10 @@ export default function Dashboard() {
           <SuppliesCard supplies={todaySchedule.supplies} />
 
           {/* 좌하단: 시간표 */}
-          <TimetableCard timetable={timetable} loading={loading.timetable} />
+          <TimetableCard timetable={timetable} loading={loading.timetable} hasSchool={!!settings.schoolCode} />
 
           {/* 우하단: 학사일정 */}
-          <EventsCard events={events} loading={loading.events} />
+          <EventsCard events={events} loading={loading.events} hasSchool={!!settings.schoolCode} />
         </div>
       </main>
 

@@ -6,9 +6,10 @@ import { SchoolEvent } from '@/types';
 interface EventsCardProps {
   events: SchoolEvent[];
   loading: boolean;
+  hasSchool: boolean;
 }
 
-export default function EventsCard({ events, loading }: EventsCardProps) {
+export default function EventsCard({ events, loading, hasSchool }: EventsCardProps) {
   return (
     <div className="card bg-gradient-to-br from-violet-50 to-purple-50">
       <div className="flex items-center gap-2 mb-3">
@@ -35,6 +36,13 @@ export default function EventsCard({ events, loading }: EventsCardProps) {
               <span className="text-sm text-gray-700">{evt.title}</span>
             </div>
           ))}
+        </div>
+      ) : !hasSchool ? (
+        <div className="flex flex-col items-center gap-2 py-4 text-center">
+          <CalendarDays className="w-8 h-8 text-violet-200" />
+          <p className="text-sm text-gray-400">
+            설정에서 학교를 등록해주세요
+          </p>
         </div>
       ) : (
         <p className="text-sm text-gray-400">

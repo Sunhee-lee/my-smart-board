@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Search, School } from 'lucide-react';
+import { X, Plus, Trash2, Search, School, Loader2 } from 'lucide-react';
 import { Settings, DEFAULT_SETTINGS, AcademyItem } from '@/types';
 import { saveSettings } from '@/lib/storage';
 import { searchSchool } from '@/lib/api';
@@ -166,9 +166,13 @@ export default function SettingsModal({
                 <button
                   onClick={handleSearch}
                   disabled={searching}
-                  className="px-3 py-2 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-colors disabled:opacity-50"
+                  className="px-3 py-2 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-colors disabled:opacity-50 flex items-center justify-center min-w-[40px]"
                 >
-                  <Search className="w-4 h-4" />
+                  {searching ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4" />
+                  )}
                 </button>
               </div>
 

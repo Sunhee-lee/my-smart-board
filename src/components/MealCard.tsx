@@ -6,9 +6,10 @@ import { MealData } from '@/types';
 interface MealCardProps {
   meal: MealData | null;
   loading: boolean;
+  hasSchool: boolean;
 }
 
-export default function MealCard({ meal, loading }: MealCardProps) {
+export default function MealCard({ meal, loading, hasSchool }: MealCardProps) {
   return (
     <div className="card bg-gradient-to-br from-orange-50 to-yellow-50">
       <div className="flex items-center gap-2 mb-3">
@@ -36,9 +37,16 @@ export default function MealCard({ meal, loading }: MealCardProps) {
             </p>
           )}
         </div>
+      ) : !hasSchool ? (
+        <div className="flex flex-col items-center gap-2 py-4 text-center">
+          <UtensilsCrossed className="w-8 h-8 text-orange-200" />
+          <p className="text-sm text-gray-400">
+            설정에서 학교를 등록해주세요
+          </p>
+        </div>
       ) : (
         <p className="text-sm text-gray-400">
-          급식 정보가 없어요. 학교를 설정해 주세요!
+          오늘은 급식 정보가 없어요.
         </p>
       )}
     </div>

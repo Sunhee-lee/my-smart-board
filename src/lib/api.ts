@@ -1,7 +1,7 @@
 import { MealData, TimetableItem, SchoolEvent, WeatherData } from '@/types';
 
-const NEIS_API_KEY = 'KEY'; // 사용자가 직접 발급받은 키로 교체
-const WEATHER_API_KEY = ''; // OpenWeatherMap API 키
+const NEIS_API_KEY = process.env.NEXT_PUBLIC_NEIS_API_KEY || '';
+const WEATHER_API_KEY = process.env.NEXT_PUBLIC_WEATHER_API_KEY || '';
 
 function formatDate(d: Date): string {
   const y = d.getFullYear();
@@ -46,7 +46,13 @@ export async function fetchMeal(
     if (!row) return null;
     const menu = row.DDISH_NM.replace(/<br\/>/g, '\n')
       .split('\n')
-      .map((s: string) => s.replace(/\([^)]*\)/g, '').trim())
+      .map((s: string) =>
+        s
+          .replace(/\([^)]*\)/g, '')   // (1.2.5) 형태 제거
+          .replace(/[0-9.]+$/g, '')     // 끝에 붙은 숫자.점 제거
+          .replace(/\s*\.\s*/g, ' ')    // 남은 점 정리
+          .trim()
+      )
       .filter(Boolean);
     return { menu, cal: row.CAL_INFO || '' };
   } catch {

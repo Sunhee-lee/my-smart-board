@@ -6,6 +6,7 @@ import { TimetableItem } from '@/types';
 interface TimetableCardProps {
   timetable: TimetableItem[];
   loading: boolean;
+  hasSchool: boolean;
 }
 
 const PERIOD_COLORS = [
@@ -17,7 +18,7 @@ const PERIOD_COLORS = [
   'bg-teal-100 text-teal-600',
 ];
 
-export default function TimetableCard({ timetable, loading }: TimetableCardProps) {
+export default function TimetableCard({ timetable, loading, hasSchool }: TimetableCardProps) {
   return (
     <div className="card bg-gradient-to-br from-pink-50 to-rose-50">
       <div className="flex items-center gap-2 mb-3">
@@ -43,9 +44,16 @@ export default function TimetableCard({ timetable, loading }: TimetableCardProps
             </div>
           ))}
         </div>
+      ) : !hasSchool ? (
+        <div className="flex flex-col items-center gap-2 py-4 text-center">
+          <BookOpen className="w-8 h-8 text-pink-200" />
+          <p className="text-sm text-gray-400">
+            설정에서 학교를 등록해주세요
+          </p>
+        </div>
       ) : (
         <p className="text-sm text-gray-400">
-          시간표 정보가 없어요. 학교를 설정해 주세요!
+          오늘은 시간표 정보가 없어요.
         </p>
       )}
     </div>
