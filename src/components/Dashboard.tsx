@@ -72,10 +72,9 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // 고유 방문자 카운터
+  // 고유 방문자 카운터 (서버 기록)
   useEffect(() => {
-    const isNew = recordUniqueVisit();
-    setShowCounter(isNew);
+    recordUniqueVisit().then((isNew) => setShowCounter(isNew));
   }, []);
 
   useEffect(() => {
