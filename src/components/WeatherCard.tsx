@@ -121,21 +121,19 @@ export default function WeatherCard({ weather, loading, theme }: WeatherCardProp
           </div>
         ) : weather ? (
           <div className="mt-2 space-y-2">
-            {/* 날씨 상태 (크게, 강조) + 이모지 */}
+            {/* 기온 + 날씨 상태 */}
             <p className="font-title text-xl text-gray-800">
-              {weather.description} {getWeatherEmoji(weather.icon)}
+              {weather.temp}°C, {weather.description} {getWeatherEmoji(weather.icon)}
             </p>
 
-            {/* 온도 + 체감온도 */}
+            {/* 최고최저 + 체감온도 */}
             <div className="flex items-center gap-2">
               <Thermometer className="w-4 h-4 text-orange-400" />
               <span className="text-sm text-gray-700">
-                <strong className="text-orange-500">{weather.temp}°C</strong>
-                <span className="text-gray-400 mx-1.5">|</span>
-                체감 <strong className="text-orange-400">{weather.feelsLike}°C</strong>
-                <span className="text-gray-400 mx-1.5">|</span>
                 <span className="text-red-400">▲{weather.tempMax}°</span>
                 <span className="text-blue-400 ml-1">▼{weather.tempMin}°</span>
+                <span className="text-gray-400 mx-1.5">|</span>
+                체감온도: <strong className="text-orange-400">{weather.feelsLike}°</strong>
               </span>
             </div>
 
