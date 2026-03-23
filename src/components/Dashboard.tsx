@@ -178,14 +178,14 @@ export default function Dashboard() {
 
           <TimetableCard timetable={timetable} loading={loading.timetable} hasSchool={!!settings.schoolCode} theme={theme} grade={settings.grade} classNum={settings.classNum} />
 
-          <SuppliesCard supplies={todaySchedule.supplies} theme={theme} />
-
           <ScheduleCard
             weeklySchedule={settings.weeklySchedule}
             todayDay={today}
             theme={theme}
             childName={displayName}
           />
+
+          <SuppliesCard supplies={todaySchedule.supplies} theme={theme} />
 
           <MealCard meal={meal} loading={loading.meal} hasSchool={!!settings.schoolCode} theme={theme} />
 
