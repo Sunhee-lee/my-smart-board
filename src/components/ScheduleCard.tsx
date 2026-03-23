@@ -20,7 +20,7 @@ function formatTime(h: string, m: string) {
 export default function ScheduleCard({ weeklySchedule, todayDay, theme, childName }: ScheduleCardProps) {
   const todayAcademies = weeklySchedule[todayDay]?.academies || [];
   const hasAnySchedule = DAYS.some((d) => (weeklySchedule[d]?.academies?.length || 0) > 0);
-  const title = '오늘의 방과후 일정';
+  const title = '오늘의 스케줄';
 
   return (
     <div className={`card ${theme.card3}`}>

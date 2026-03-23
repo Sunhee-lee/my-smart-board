@@ -133,6 +133,9 @@ export default function WeatherCard({ weather, loading, theme }: WeatherCardProp
                 <strong className="text-orange-500">{weather.temp}°C</strong>
                 <span className="text-gray-400 mx-1.5">|</span>
                 체감 <strong className="text-orange-400">{weather.feelsLike}°C</strong>
+                <span className="text-gray-400 mx-1.5">|</span>
+                <span className="text-red-400">▲{weather.tempMax}°</span>
+                <span className="text-blue-400 ml-1">▼{weather.tempMin}°</span>
               </span>
             </div>
 

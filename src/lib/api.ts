@@ -121,6 +121,8 @@ export async function fetchWeather(
   if (!WEATHER_API_KEY) {
     return {
       temp: 18,
+      tempMin: 12,
+      tempMax: 22,
       feelsLike: 16,
       description: '맑음',
       icon: '01d',
@@ -158,6 +160,8 @@ export async function fetchWeather(
 
     return {
       temp: Math.round(weatherData.main.temp),
+      tempMin: Math.round(weatherData.main.temp_min),
+      tempMax: Math.round(weatherData.main.temp_max),
       feelsLike: Math.round(weatherData.main.feels_like),
       description: weatherData.weather[0].description,
       icon: weatherData.weather[0].icon,

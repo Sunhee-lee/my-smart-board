@@ -28,6 +28,8 @@ export interface Settings {
 
 export interface WeatherData {
   temp: number;
+  tempMin: number;
+  tempMax: number;
   feelsLike: number;
   description: string;
   icon: string;
