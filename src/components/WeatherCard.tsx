@@ -122,8 +122,9 @@ export default function WeatherCard({ weather, loading, theme }: WeatherCardProp
         ) : weather ? (
           <div className="mt-2 space-y-2">
             {/* 기온 + 날씨 상태 */}
-            <p className="font-title text-xl text-gray-800">
-              {weather.temp}°C, {weather.description} {getWeatherEmoji(weather.icon)}
+            <p className="font-title text-gray-800">
+              <span className="text-2xl">{weather.temp}°C</span>{' '}
+              <span className="text-base">{weather.description} {getWeatherEmoji(weather.icon)}</span>
             </p>
 
             {/* 최고최저 + 체감온도 */}
