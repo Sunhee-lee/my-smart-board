@@ -151,13 +151,13 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             {clock && (
               <div className={`text-left tabular-nums ${theme.headerIcon} flex flex-wrap items-baseline gap-x-3`}>
-                <span className="text-xl font-bold leading-tight">{dateStr}</span>
-                <span className="text-xl font-bold leading-tight">{clock}</span>
+                <span className="text-sm sm:text-xl font-bold leading-tight">{dateStr}</span>
+                <span className="text-sm sm:text-xl font-bold leading-tight">{clock}</span>
               </div>
             )}
           </div>
           <div className="flex items-center gap-3">
-            <h1 className={`font-title text-xl ${theme.headerTitle}`}>
+            <h1 className={`font-title text-sm sm:text-xl ${theme.headerTitle}`}>
               {displayName ? `${displayName}의 스마트 보드` : '나의 스마트 보드'}
             </h1>
             <button
