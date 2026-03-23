@@ -29,7 +29,7 @@ export default function EventsCard({ events, loading, hasSchool, theme }: Events
         </div>
       ) : events.length > 0 ? (
         <div className="space-y-1.5 max-h-48 overflow-y-auto">
-          {events.map((evt, i) => (
+          {events.filter((evt) => !evt.title.includes('토요휴업일')).map((evt, i) => (
             <div
               key={i}
               className="flex items-center gap-3 bg-white/60 rounded-lg px-3 py-2"

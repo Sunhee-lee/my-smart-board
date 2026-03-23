@@ -35,13 +35,13 @@ export default function ScheduleCard({ weeklySchedule, todayDay, theme, childNam
           {todayAcademies.map((item, i) => (
             <div
               key={i}
-              className="flex items-center justify-between bg-white/60 rounded-lg px-3 py-2"
+              className="flex items-center gap-2 bg-white/60 rounded-lg px-3 py-2"
             >
-              <span className="text-sm font-medium text-gray-700">{item.name || '(미입력)'}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${theme.card3Accent} flex items-center gap-1`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${theme.card3Accent} flex items-center gap-1 whitespace-nowrap`}>
                 <Clock className="w-3 h-3" />
-                {formatTime(item.startHour, item.startMin)} ~ {formatTime(item.endHour, item.endMin)}
+                {formatTime(item.startHour, item.startMin)}~{formatTime(item.endHour, item.endMin)}
               </span>
+              <span className="text-sm font-medium text-gray-700">{item.name || '(미입력)'}</span>
             </div>
           ))}
         </div>
