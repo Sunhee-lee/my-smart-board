@@ -101,7 +101,7 @@ export default function Dashboard() {
       {/* 상단 바 */}
       <header className={`sticky top-0 z-10 ${theme.headerBg} backdrop-blur-md border-b ${theme.headerBorder}`}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className={`text-lg font-bold ${theme.headerTitle} flex items-center gap-2`}>
+          <h1 className={`font-title text-xl ${theme.headerTitle} flex items-center gap-2`}>
             <span className="text-2xl">🎒</span> 스마트 등교 대시보드
           </h1>
           <button
@@ -119,18 +119,40 @@ export default function Dashboard() {
         <CharacterGreeting name={settings.childName} theme={theme} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* 좌상단: 날씨 */}
           <WeatherCard weather={weather} loading={loading.weather} theme={theme} />
-          <MealCard meal={meal} loading={loading.meal} hasSchool={!!settings.schoolCode} theme={theme} />
+
+          {/* 우상단: 학원/방과후 (기존 급식 자리) */}
           <ScheduleCard
             weeklySchedule={settings.weeklySchedule}
             todayDay={today}
             theme={theme}
           />
+
+          {/* 좌중단: 급식 (기존 학원 자리) */}
+          <MealCard meal={meal} loading={loading.meal} hasSchool={!!settings.schoolCode} theme={theme} />
+
+          {/* 우중단: 준비물 */}
           <SuppliesCard supplies={todaySchedule.supplies} theme={theme} />
+
+          {/* 좌하단: 시간표 */}
           <TimetableCard timetable={timetable} loading={loading.timetable} hasSchool={!!settings.schoolCode} theme={theme} />
+
+          {/* 우하단: 학사일정 */}
           <EventsCard events={events} loading={loading.events} hasSchool={!!settings.schoolCode} theme={theme} />
         </div>
       </main>
+
+      {/* 방문자 카운터 - hits.sh 무료 서비스 */}
+      <div className="fixed bottom-3 right-3 opacity-50 hover:opacity-80 transition-opacity">
+        <a href="https://hits.sh/smart-school-dashboard.vercel.app/" target="_blank" rel="noopener noreferrer">
+          <img
+            src="https://hits.sh/smart-school-dashboard.vercel.app.svg?view=today-total&style=flat-square&label=visitors&color=aaaaaa&labelColor=f0f0f0"
+            alt="오늘 방문자"
+            className="h-5"
+          />
+        </a>
+      </div>
 
       {/* 설정 모달 */}
       <SettingsModal

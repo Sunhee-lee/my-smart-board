@@ -8,7 +8,12 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+/* 제목용 둥근 폰트 */
+.font-title {
+  font-family: 'Jua', 'Pretendard Variable', sans-serif;
 }
 
 /* Card 기본 스타일 */
@@ -26,8 +31,9 @@ body {
 }
 
 .card-title {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-family: 'Jua', 'Pretendard Variable', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
   letter-spacing: 0.02em;
 }
 

@@ -41,7 +41,7 @@ export default function TimetableCard({ timetable, loading, hasSchool, theme }: 
               key={item.period}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 ${PERIOD_COLORS[i % PERIOD_COLORS.length]}`}
             >
-              <span className="font-bold text-sm w-8">{item.period}교시</span>
+              <span className="font-bold text-sm min-w-[3.5rem] whitespace-nowrap">{item.period}교시</span>
               <span className="text-sm font-medium">{item.subject}</span>
             </div>
           ))}
