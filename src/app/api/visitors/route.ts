@@ -1,25 +1,28 @@
-import { promises as fs } from 'fs';
-import path from 'path';
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'visitors.json');
-
-interface VisitorData {
-  devices: string[];
-  daily: Record<string, number>;
+async function redis(command: string[]) {
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) return null;
+  const res = await fetch(`${UPSTASH_URL}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
+    body: JSON.stringify(command),
+  });
+  if (!res.ok) return null;
+  const json = await res.json();
+  return json.result;
 }
 
-async function readData(): Promise<VisitorData> {
-  try {
-    const raw = await fs.readFile(DATA_FILE, 'utf-8');
-    return JSON.parse(raw);
-  } catch {
-    return { devices: [], daily: {} };
-  }
-}
-
-async function writeData(data: VisitorData) {
-  await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+async function redisPipeline(commands: string[][]) {
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) return null;
+  const res = await fetch(`${UPSTASH_URL}/pipeline`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
+    body: JSON.stringify(commands),
+  });
+  if (!res.ok) return null;
+  const json = await res.json();
+  return json.map((r: { result: unknown }) => r.result);
 }
 
 // 방문 기록
@@ -30,27 +33,24 @@ export async function POST(request: Request) {
       return Response.json({ error: 'deviceId required' }, { status: 400 });
     }
 
-    const data = await readData();
     const today = new Date().toISOString().slice(0, 10);
 
-    const isNewDevice = !data.devices.includes(deviceId);
-    if (isNewDevice) {
-      data.devices.push(deviceId);
+    // SADD: 새 기기면 1 리턴, 이미 있으면 0
+    // HINCRBY: 오늘 방문수 +1
+    const results = await redisPipeline([
+      ['SADD', 'visitors:devices', deviceId],
+      ['HINCRBY', 'visitors:daily', today, '1'],
+      ['SCARD', 'visitors:devices'],
+    ]);
+
+    if (!results) {
+      return Response.json({ error: 'Redis not configured' }, { status: 500 });
     }
 
-    data.daily[today] = (data.daily[today] || 0) + 1;
+    const isNewDevice = results[0] === 1;
+    const totalDevices = results[2];
 
-    // 최근 90일만 보관
-    const keys = Object.keys(data.daily).sort();
-    if (keys.length > 90) {
-      for (const key of keys.slice(0, keys.length - 90)) {
-        delete data.daily[key];
-      }
-    }
-
-    await writeData(data);
-
-    return Response.json({ isNewDevice, totalDevices: data.devices.length });
+    return Response.json({ isNewDevice, totalDevices });
   } catch (err) {
     console.error('[visitors] POST error:', err);
     return Response.json({ error: 'server error' }, { status: 500 });
@@ -60,16 +60,26 @@ export async function POST(request: Request) {
 // 통계 조회
 export async function GET() {
   try {
-    const data = await readData();
+    const results = await redisPipeline([
+      ['HGETALL', 'visitors:daily'],
+      ['SCARD', 'visitors:devices'],
+    ]);
 
-    const totalVisits = Object.values(data.daily).reduce((s, v) => s + v, 0);
-    const totalDevices = data.devices.length;
+    if (!results) {
+      return Response.json({ error: 'Redis not configured' }, { status: 500 });
+    }
 
-    return Response.json({
-      daily: data.daily,
-      totalVisits,
-      totalDevices,
-    });
+    // HGETALL returns flat array: [key1, val1, key2, val2, ...]
+    const flatDaily = results[0] as string[] || [];
+    const daily: Record<string, number> = {};
+    for (let i = 0; i < flatDaily.length; i += 2) {
+      daily[flatDaily[i]] = parseInt(flatDaily[i + 1], 10);
+    }
+
+    const totalVisits = Object.values(daily).reduce((s, v) => s + v, 0);
+    const totalDevices = results[1] as number;
+
+    return Response.json({ daily, totalVisits, totalDevices });
   } catch (err) {
     console.error('[visitors] GET error:', err);
     return Response.json({ error: 'server error' }, { status: 500 });
