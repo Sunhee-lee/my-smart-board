@@ -369,7 +369,7 @@ export default function SettingsModal({
 
           {/* 정보 저장 / 초기화 버튼 */}
           <div className="p-5 border-t border-gray-100 space-y-2">
-            <p className="text-[10px] text-gray-400 text-center">
+            <p className="text-[8px] text-gray-300 text-center leading-relaxed">
               입력하신 정보는 이 기기에만 저장되며, 외부로 전송되거나 관리자가 확인할 수 없습니다.
             </p>
             <button

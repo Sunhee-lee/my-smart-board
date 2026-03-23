@@ -13,6 +13,7 @@ import ScheduleCard from './ScheduleCard';
 import SuppliesCard from './SuppliesCard';
 import EventsCard from './EventsCard';
 import SettingsModal from './SettingsModal';
+import VisitorStatsModal, { recordUniqueVisit } from './VisitorStatsModal';
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -31,15 +32,6 @@ function formatClock(d: Date): string {
   return `${ampm} ${h12}:${m}:${s}`;
 }
 
-function recordUniqueVisit(): boolean {
-  const VISIT_KEY = 'smart-board-visit-date';
-  const today = new Date().toISOString().slice(0, 10);
-  const lastVisit = localStorage.getItem(VISIT_KEY);
-  if (lastVisit === today) return false;
-  localStorage.setItem(VISIT_KEY, today);
-  return true;
-}
-
 export default function Dashboard() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -49,6 +41,7 @@ export default function Dashboard() {
   const [events, setEvents] = useState<SchoolEvent[]>([]);
   const [clock, setClock] = useState('');
   const [showCounter, setShowCounter] = useState(false);
+  const [visitorStatsOpen, setVisitorStatsOpen] = useState(false);
   const [loading, setLoading] = useState({
     weather: true,
     meal: true,
@@ -182,23 +175,20 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* 방문자 카운터 - 하단 구석 (하루 1회만 카운팅) */}
+      {/* 방문자 카운터 - 하단 구석 */}
       <footer className="max-w-6xl mx-auto px-4 py-4 flex justify-end">
-        <div className="opacity-40 hover:opacity-70 transition-opacity">
-          {showCounter ? (
-            /* 새 방문자: 이미지 로드하여 카운트 증가 */
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src="https://hits.sh/smart-school-dashboard.vercel.app.svg?view=today-total&style=flat-square&label=today&color=888888&labelColor=eeeeee"
-              alt="오늘 방문자"
-              className="h-5"
-            />
-          ) : (
-            /* 재방문: 카운트 안 올라가도록 이미지 로드 안 함 */
-            <span className="text-[10px] text-gray-400">visited today</span>
-          )}
-        </div>
+        <button
+          onClick={() => setVisitorStatsOpen(true)}
+          className="opacity-40 hover:opacity-70 transition-opacity text-[10px] text-gray-400 hover:text-gray-600 flex items-center gap-1"
+        >
+          {showCounter ? '📊 방문 기록됨' : '📊 방문 통계'}
+        </button>
       </footer>
+
+      <VisitorStatsModal
+        isOpen={visitorStatsOpen}
+        onClose={() => setVisitorStatsOpen(false)}
+      />
 
       <SettingsModal
         isOpen={settingsOpen}
