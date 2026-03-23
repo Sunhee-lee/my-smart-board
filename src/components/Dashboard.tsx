@@ -266,12 +266,13 @@ export default function Dashboard() {
 
       {/* 하단 */}
       <footer className="max-w-6xl mx-auto px-4 py-1 flex items-center justify-between">
-        <span className="text-[9px] text-gray-300">created by 이츠써니</span>
         <button
           onClick={() => setVisitorStatsOpen(true)}
-          className="opacity-0 hover:opacity-40 transition-opacity text-[10px] text-gray-400 w-16 h-6"
+          className="text-[9px] text-gray-300 hover:text-gray-400 transition-colors cursor-pointer"
           aria-label="방문 통계"
-        />
+        >
+          created by 이츠써니
+        </button>
       </footer>
 
       <VisitorStatsModal
