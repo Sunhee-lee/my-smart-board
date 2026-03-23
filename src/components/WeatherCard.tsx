@@ -100,18 +100,18 @@ function dustBadgeColor(value: number, type: 'pm10' | 'pm25') {
 
 export default function WeatherCard({ weather, loading, theme }: WeatherCardProps) {
   return (
-    <div className={`card ${theme.card3}`}>
+    <div className={`card ${theme.card1}`}>
       <div className="flex items-center gap-2 mb-3">
-        {weather ? getWeatherIcon(weather.icon) : <CloudSun className={`w-5 h-5 ${theme.card3Icon}`} />}
-        <h3 className={`card-title ${theme.card3Title}`}>오늘의 날씨</h3>
+        {weather ? getWeatherIcon(weather.icon) : <CloudSun className={`w-5 h-5 ${theme.card1Icon}`} />}
+        <h3 className={`card-title ${theme.card1Title}`}>오늘의 날씨</h3>
       </div>
 
       <div className="space-y-2">
 
         {loading ? (
           <div className="animate-pulse space-y-2 mt-3">
-            <div className={`h-4 ${theme.skeleton2} rounded w-3/4`} />
-            <div className={`h-4 ${theme.skeleton2} rounded w-1/2`} />
+            <div className={`h-4 ${theme.skeleton1} rounded w-3/4`} />
+            <div className={`h-4 ${theme.skeleton1} rounded w-1/2`} />
           </div>
         ) : weather ? (
           <div className="mt-2 space-y-2">

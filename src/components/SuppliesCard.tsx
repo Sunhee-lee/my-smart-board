@@ -17,10 +17,10 @@ export default function SuppliesCard({ supplies, theme }: SuppliesCardProps) {
   };
 
   return (
-    <div className={`card ${theme.card4}`}>
+    <div className={`card ${theme.card3}`}>
       <div className="flex items-center gap-2 mb-3">
-        <Backpack className={`w-5 h-5 ${theme.card4Icon}`} />
-        <h3 className={`card-title ${theme.card4Title}`}>오늘의 준비물</h3>
+        <Backpack className={`w-5 h-5 ${theme.card3Icon}`} />
+        <h3 className={`card-title ${theme.card3Title}`}>오늘의 준비물</h3>
       </div>
 
       {supplies.length > 0 ? (
@@ -39,7 +39,7 @@ export default function SuppliesCard({ supplies, theme }: SuppliesCardProps) {
                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                   checked[i]
                     ? 'bg-green-400 border-green-400'
-                    : theme.card4Accent
+                    : theme.card3Accent
                 }`}
               >
                 {checked[i] && <Check className="w-3 h-3 text-white" />}

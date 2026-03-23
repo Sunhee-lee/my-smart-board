@@ -150,7 +150,7 @@ export default function Dashboard() {
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {clock && (
-              <div className={`text-left tabular-nums ${theme.headerIcon} flex flex-wrap items-baseline gap-x-3`}>
+              <div className={`text-left tabular-nums ${theme.headerIcon} flex flex-col sm:flex-row sm:items-baseline sm:gap-x-3`}>
                 <span className="text-sm sm:text-xl font-bold leading-tight">{dateStr}</span>
                 <span className="text-sm sm:text-xl font-bold leading-tight">{clock}</span>
               </div>
@@ -174,7 +174,11 @@ export default function Dashboard() {
       {/* 메인 콘텐츠 */}
       <main className="max-w-6xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <WeatherCard weather={weather} loading={loading.weather} theme={theme} />
+
           <TimetableCard timetable={timetable} loading={loading.timetable} hasSchool={!!settings.schoolCode} theme={theme} grade={settings.grade} classNum={settings.classNum} />
+
+          <SuppliesCard supplies={todaySchedule.supplies} theme={theme} />
 
           <ScheduleCard
             weeklySchedule={settings.weeklySchedule}
@@ -182,10 +186,6 @@ export default function Dashboard() {
             theme={theme}
             childName={displayName}
           />
-
-          <WeatherCard weather={weather} loading={loading.weather} theme={theme} />
-
-          <SuppliesCard supplies={todaySchedule.supplies} theme={theme} />
 
           <MealCard meal={meal} loading={loading.meal} hasSchool={!!settings.schoolCode} theme={theme} />
 
