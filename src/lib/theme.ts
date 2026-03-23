@@ -132,7 +132,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     preview: 'bg-gradient-to-br from-yellow-200 to-amber-300',
   },
   sky: {
-    name: '하늘색',
+    name: '하늘',
     bg: 'bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50',
     headerBg: 'bg-white/70',
     headerBorder: 'border-sky-100',
