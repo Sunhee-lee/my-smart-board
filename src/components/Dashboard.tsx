@@ -83,18 +83,49 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!settings) return;
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const data = await fetchWeather(pos.coords.latitude, pos.coords.longitude);
+
+    const CACHE_KEY = 'smart-board-weather-cache';
+    const CACHE_TTL = 30 * 60 * 1000; // 30분
+    const COORD_KEY = 'smart-board-geo-cache';
+
+    // 캐시된 날씨 데이터가 있으면 즉시 표시
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_TTL) {
           setWeather(data);
           setLoading((prev) => ({ ...prev, weather: false }));
-        },
-        async () => {
-          const data = await fetchWeather(37.5665, 126.978);
-          setWeather(data);
-          setLoading((prev) => ({ ...prev, weather: false }));
+          return;
         }
+      }
+    } catch { /* 캐시 오류 무시 */ }
+
+    const loadWeather = async (lat: number, lon: number) => {
+      // 좌표 캐싱
+      localStorage.setItem(COORD_KEY, JSON.stringify({ lat, lon }));
+      const data = await fetchWeather(lat, lon);
+      if (data) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+      }
+      setWeather(data);
+      setLoading((prev) => ({ ...prev, weather: false }));
+    };
+
+    if (navigator.geolocation) {
+      // 캐시된 좌표로 먼저 빠르게 로딩, 그 뒤 GPS로 갱신
+      try {
+        const geoCache = localStorage.getItem(COORD_KEY);
+        if (geoCache) {
+          const { lat, lon } = JSON.parse(geoCache);
+          loadWeather(lat, lon);
+          return;
+        }
+      } catch { /* 무시 */ }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => loadWeather(pos.coords.latitude, pos.coords.longitude),
+        () => loadWeather(37.5665, 126.978)
       );
     } else {
       setLoading((prev) => ({ ...prev, weather: false }));
