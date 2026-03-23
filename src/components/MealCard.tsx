@@ -9,14 +9,15 @@ interface MealCardProps {
   loading: boolean;
   hasSchool: boolean;
   theme: ThemeConfig;
+  dayLabel?: string;
 }
 
-export default function MealCard({ meal, loading, hasSchool, theme }: MealCardProps) {
+export default function MealCard({ meal, loading, hasSchool, theme, dayLabel = '오늘의' }: MealCardProps) {
   return (
     <div className={`card ${theme.card5}`}>
       <div className="flex items-center gap-2 mb-3">
         <UtensilsCrossed className={`w-5 h-5 ${theme.card5Icon}`} />
-        <h3 className={`card-title ${theme.card5Title}`}>오늘의 급식</h3>
+        <h3 className={`card-title ${theme.card5Title}`}>{dayLabel} 급식</h3>
       </div>
 
       {loading ? (
@@ -45,7 +46,7 @@ export default function MealCard({ meal, loading, hasSchool, theme }: MealCardPr
           <p className="text-sm text-gray-400">설정에서 학교를 등록해주세요</p>
         </div>
       ) : (
-        <p className="text-sm text-gray-400">오늘은 급식 정보가 없어요.</p>
+        <p className="text-sm text-gray-400">{dayLabel === '내일의' ? '내일은' : '오늘은'} 급식 정보가 없어요.</p>
       )}
     </div>
   );

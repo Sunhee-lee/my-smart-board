@@ -53,6 +53,10 @@ export default function Dashboard() {
   const [showCounter, setShowCounter] = useState(false);
   const [visitorStatsOpen, setVisitorStatsOpen] = useState(false);
   const [refreshingWeather, setRefreshingWeather] = useState(false);
+  const [viewTomorrow, setViewTomorrow] = useState(false);
+  const [tomorrowMeal, setTomorrowMeal] = useState<MealData | null>(null);
+  const [tomorrowTimetable, setTomorrowTimetable] = useState<TimetableItem[]>([]);
+  const [tomorrowLoading, setTomorrowLoading] = useState({ meal: false, timetable: false });
   const [loading, setLoading] = useState({
     weather: true,
     meal: true,
@@ -192,6 +196,30 @@ export default function Dashboard() {
     if (settings) fetchNeisData(settings);
   }, [settings, fetchNeisData]);
 
+  const fetchTomorrowData = useCallback(async (s: Settings) => {
+    if (!s.schoolCode) return;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setTomorrowLoading({ meal: true, timetable: true });
+    const [mealData, ttData] = await Promise.all([
+      fetchMeal(s.eduOfficeCode, s.schoolCode, tomorrow),
+      fetchTimetable(s.eduOfficeCode, s.schoolCode, s.grade, s.classNum, tomorrow),
+    ]);
+    setTomorrowMeal(mealData);
+    setTomorrowTimetable(ttData);
+    setTomorrowLoading({ meal: false, timetable: false });
+  }, []);
+
+  const toggleView = useCallback(() => {
+    if (!viewTomorrow && settings) {
+      // 내일 데이터가 없으면 가져오기
+      if (!tomorrowMeal && tomorrowTimetable.length === 0 && !tomorrowLoading.meal) {
+        fetchTomorrowData(settings);
+      }
+    }
+    setViewTomorrow((prev) => !prev);
+  }, [viewTomorrow, settings, tomorrowMeal, tomorrowTimetable, tomorrowLoading, fetchTomorrowData]);
+
   const handleSaveSettings = (newSettings: Settings) => {
     setSettings(newSettings);
     setLoading({ weather: false, meal: true, timetable: true, events: true });
@@ -209,10 +237,15 @@ export default function Dashboard() {
 
   const displayName = getDisplayName(settings);
   const today = DAY_NAMES[new Date().getDay()];
-  const todaySchedule = settings.weeklySchedule[today] || {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDay = DAY_NAMES[tomorrow.getDay()];
+  const activeDay = viewTomorrow ? tomorrowDay : today;
+  const activeSchedule = settings.weeklySchedule[activeDay] || {
     academies: [],
     supplies: [],
   };
+  const dayLabel = viewTomorrow ? '내일의' : '오늘의';
 
   return (
     <div className={`min-h-screen ${theme.bg} transition-colors duration-300`}>
@@ -247,18 +280,33 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <WeatherCard weather={weather} loading={loading.weather} theme={theme} onRefresh={refreshWeather} refreshing={refreshingWeather} />
 
-          <TimetableCard timetable={timetable} loading={loading.timetable} hasSchool={!!settings.schoolCode} theme={theme} grade={settings.grade} classNum={settings.classNum} />
+          <TimetableCard
+            timetable={viewTomorrow ? tomorrowTimetable : timetable}
+            loading={viewTomorrow ? tomorrowLoading.timetable : loading.timetable}
+            hasSchool={!!settings.schoolCode}
+            theme={theme}
+            grade={settings.grade}
+            classNum={settings.classNum}
+            dayLabel={dayLabel}
+          />
 
           <ScheduleCard
             weeklySchedule={settings.weeklySchedule}
-            todayDay={today}
+            todayDay={activeDay}
             theme={theme}
             childName={displayName}
+            dayLabel={dayLabel}
           />
 
-          <SuppliesCard supplies={todaySchedule.supplies} theme={theme} />
+          <SuppliesCard supplies={activeSchedule.supplies} theme={theme} dayLabel={dayLabel} />
 
-          <MealCard meal={meal} loading={loading.meal} hasSchool={!!settings.schoolCode} theme={theme} />
+          <MealCard
+            meal={viewTomorrow ? tomorrowMeal : meal}
+            loading={viewTomorrow ? tomorrowLoading.meal : loading.meal}
+            hasSchool={!!settings.schoolCode}
+            theme={theme}
+            dayLabel={dayLabel}
+          />
 
           <EventsCard events={events} loading={loading.events} hasSchool={!!settings.schoolCode} theme={theme} />
         </div>
@@ -272,6 +320,12 @@ export default function Dashboard() {
           aria-label="방문 통계"
         >
           created by 이츠써니
+        </button>
+        <button
+          onClick={toggleView}
+          className={`text-xs ${theme.headerIcon} hover:opacity-70 transition-opacity cursor-pointer`}
+        >
+          {viewTomorrow ? '← 오늘을 볼까요' : '내일을 볼까요 →'}
         </button>
       </footer>
 

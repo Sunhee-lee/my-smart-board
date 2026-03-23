@@ -11,9 +11,10 @@ interface TimetableCardProps {
   theme: ThemeConfig;
   grade: string;
   classNum: string;
+  dayLabel?: string;
 }
 
-export default function TimetableCard({ timetable, loading, hasSchool, theme, grade, classNum }: TimetableCardProps) {
+export default function TimetableCard({ timetable, loading, hasSchool, theme, grade, classNum, dayLabel = '오늘의' }: TimetableCardProps) {
   const subtitle = hasSchool ? `(${grade}학년 ${classNum}반)` : '';
 
   return (
@@ -21,7 +22,7 @@ export default function TimetableCard({ timetable, loading, hasSchool, theme, gr
       <div className="flex items-center gap-2 mb-3">
         <BookOpen className={`w-5 h-5 ${theme.card2Icon}`} />
         <h3 className={`card-title ${theme.card2Title}`}>
-          오늘의 시간표{subtitle && <span className="text-xs font-normal ml-1 opacity-70">{subtitle}</span>}
+          {dayLabel} 시간표{subtitle && <span className="text-xs font-normal ml-1 opacity-70">{subtitle}</span>}
         </h3>
       </div>
 
@@ -49,7 +50,7 @@ export default function TimetableCard({ timetable, loading, hasSchool, theme, gr
           <p className="text-sm text-gray-400">설정에서 학교를 등록해주세요</p>
         </div>
       ) : (
-        <p className="text-sm text-gray-400">오늘은 시간표 정보가 없어요.</p>
+        <p className="text-sm text-gray-400">{dayLabel === '내일의' ? '내일은' : '오늘은'} 시간표 정보가 없어요.</p>
       )}
     </div>
   );

@@ -9,6 +9,7 @@ interface ScheduleCardProps {
   todayDay: string;
   theme: ThemeConfig;
   childName: string;
+  dayLabel?: string;
 }
 
 const DAYS = ['월', '화', '수', '목', '금'];
@@ -17,10 +18,10 @@ function formatTime(h: string, m: string) {
   return `${h}:${m}`;
 }
 
-export default function ScheduleCard({ weeklySchedule, todayDay, theme, childName }: ScheduleCardProps) {
+export default function ScheduleCard({ weeklySchedule, todayDay, theme, childName, dayLabel = '오늘의' }: ScheduleCardProps) {
   const todayAcademies = weeklySchedule[todayDay]?.academies || [];
   const hasAnySchedule = DAYS.some((d) => (weeklySchedule[d]?.academies?.length || 0) > 0);
-  const title = '오늘의 스케줄';
+  const title = `${dayLabel} 스케줄`;
 
   return (
     <div className={`card ${theme.card3}`}>
@@ -46,7 +47,7 @@ export default function ScheduleCard({ weeklySchedule, todayDay, theme, childNam
         </div>
       ) : (
         <p className="text-sm text-gray-400 mb-3">
-          오늘은 일정이 없어요! 자유 시간!
+          {dayLabel === '내일의' ? '내일은' : '오늘은'} 일정이 없어요! 자유 시간!
         </p>
       )}
 

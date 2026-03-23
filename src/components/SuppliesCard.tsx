@@ -7,9 +7,10 @@ import { ThemeConfig } from '@/lib/theme';
 interface SuppliesCardProps {
   supplies: string[];
   theme: ThemeConfig;
+  dayLabel?: string;
 }
 
-export default function SuppliesCard({ supplies, theme }: SuppliesCardProps) {
+export default function SuppliesCard({ supplies, theme, dayLabel = '오늘의' }: SuppliesCardProps) {
   const [checked, setChecked] = useState<Record<number, boolean>>({});
 
   const toggle = (i: number) => {
@@ -20,7 +21,7 @@ export default function SuppliesCard({ supplies, theme }: SuppliesCardProps) {
     <div className={`card ${theme.card4}`}>
       <div className="flex items-center gap-2 mb-3">
         <Backpack className={`w-5 h-5 ${theme.card4Icon}`} />
-        <h3 className={`card-title ${theme.card4Title}`}>오늘의 준비물</h3>
+        <h3 className={`card-title ${theme.card4Title}`}>{dayLabel} 준비물</h3>
       </div>
 
       {supplies.length > 0 ? (
@@ -49,7 +50,7 @@ export default function SuppliesCard({ supplies, theme }: SuppliesCardProps) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-gray-400">오늘은 특별한 준비물이 없어요!</p>
+        <p className="text-sm text-gray-400">{dayLabel === '내일의' ? '내일은' : '오늘은'} 특별한 준비물이 없어요!</p>
       )}
     </div>
   );

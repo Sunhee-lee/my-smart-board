@@ -34,11 +34,12 @@ export async function searchSchool(
 // ── 급식 정보 ──
 export async function fetchMeal(
   eduOfficeCode: string,
-  schoolCode: string
+  schoolCode: string,
+  targetDate?: Date
 ): Promise<MealData | null> {
   if (!schoolCode) return null;
   try {
-    const date = formatDate(new Date());
+    const date = formatDate(targetDate || new Date());
     const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_API_KEY}&Type=json&ATPT_OFCDC_SC_CODE=${eduOfficeCode}&SD_SCHUL_CODE=${schoolCode}&MLSV_YMD=${date}`;
     const res = await fetch(url);
     const data = await res.json();
@@ -67,11 +68,12 @@ export async function fetchTimetable(
   eduOfficeCode: string,
   schoolCode: string,
   grade: string,
-  classNum: string
+  classNum: string,
+  targetDate?: Date
 ): Promise<TimetableItem[]> {
   if (!schoolCode) return [];
   try {
-    const date = formatDate(new Date());
+    const date = formatDate(targetDate || new Date());
     const url = `https://open.neis.go.kr/hub/elsTimetable?KEY=${NEIS_API_KEY}&Type=json&ATPT_OFCDC_SC_CODE=${eduOfficeCode}&SD_SCHUL_CODE=${schoolCode}&GRADE=${grade}&CLASS_NM=${classNum}&ALL_TI_YMD=${date}`;
     const res = await fetch(url);
     const data = await res.json();
