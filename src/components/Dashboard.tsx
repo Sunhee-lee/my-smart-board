@@ -16,6 +16,12 @@ import SettingsModal from './SettingsModal';
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
+function getDisplayName(s: Settings): string {
+  if (s.childFirstName?.trim()) return s.childFirstName.trim();
+  if (s.childName?.trim()) return s.childName.trim();
+  return '';
+}
+
 export default function Dashboard() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -89,6 +95,7 @@ export default function Dashboard() {
     );
   }
 
+  const displayName = getDisplayName(settings);
   const today = DAY_NAMES[new Date().getDay()];
   const todaySchedule = settings.weeklySchedule[today] || {
     academies: [],
@@ -100,8 +107,8 @@ export default function Dashboard() {
       {/* 상단 바 */}
       <header className={`sticky top-0 z-10 ${theme.headerBg} backdrop-blur-md border-b ${theme.headerBorder}`}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className={`font-title text-xl ${theme.headerTitle} flex items-center gap-2`}>
-            <span className="text-2xl">🎒</span> {settings.childName?.trim() ? `${settings.childName}의 스마트 보드` : '스마트 보드'}
+          <h1 className={`font-title text-xl ${theme.headerTitle}`}>
+            {displayName ? `${displayName}의 스마트 보드` : '스마트 보드'}
           </h1>
           <button
             onClick={() => setSettingsOpen(true)}
@@ -122,7 +129,7 @@ export default function Dashboard() {
             weeklySchedule={settings.weeklySchedule}
             todayDay={today}
             theme={theme}
-            childName={settings.childName}
+            childName={displayName}
           />
 
           <MealCard meal={meal} loading={loading.meal} hasSchool={!!settings.schoolCode} theme={theme} />
@@ -135,17 +142,17 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* 방문자 카운터 */}
-      <div className="fixed bottom-3 right-3 opacity-50 hover:opacity-80 transition-opacity">
-        <a href="https://hits.sh/smart-school-dashboard.vercel.app/" target="_blank" rel="noopener noreferrer">
+      {/* 방문자 카운터 - 하단 구석 */}
+      <footer className="max-w-6xl mx-auto px-4 py-4 flex justify-end">
+        <div className="opacity-40 hover:opacity-70 transition-opacity">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://hits.sh/smart-school-dashboard.vercel.app.svg?view=today-total&style=flat-square&label=visitors&color=aaaaaa&labelColor=f0f0f0"
+            src="https://hits.sh/smart-school-dashboard.vercel.app.svg?view=today-total&style=flat-square&label=today&color=888888&labelColor=eeeeee"
             alt="오늘 방문자"
             className="h-5"
           />
-        </a>
-      </div>
+        </div>
+      </footer>
 
       <SettingsModal
         isOpen={settingsOpen}

@@ -12,6 +12,23 @@ interface WeatherCardProps {
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
+function getWeatherEmoji(icon: string): string {
+  if (!icon) return '🌤';
+  const code = icon.slice(0, 2);
+  switch (code) {
+    case '01': return '☀️';
+    case '02': return '⛅';
+    case '03': return '☁️';
+    case '04': return '🌥️';
+    case '09': return '🌧️';
+    case '10': return '☔';
+    case '11': return '⛈️';
+    case '13': return '⛄';
+    case '50': return '🌫️';
+    default: return '🌤';
+  }
+}
+
 function getWeatherIcon(icon: string) {
   if (!icon) return <CloudSun className="w-5 h-5 text-sky-400" />;
   const code = icon.slice(0, 2);
@@ -103,8 +120,10 @@ export default function WeatherCard({ weather, loading, theme }: WeatherCardProp
           </div>
         ) : weather ? (
           <div className="mt-2 space-y-2">
-            {/* 날씨 상태 (크게, 강조) */}
-            <p className="font-title text-xl text-gray-800">{weather.description}</p>
+            {/* 날씨 상태 (크게, 강조) + 이모지 */}
+            <p className="font-title text-xl text-gray-800">
+              {weather.description} {getWeatherEmoji(weather.icon)}
+            </p>
 
             {/* 온도 + 체감온도 */}
             <div className="flex items-center gap-2">

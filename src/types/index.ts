@@ -15,6 +15,8 @@ export interface DaySchedule {
 
 export interface Settings {
   childName: string;
+  childLastName: string;
+  childFirstName: string;
   schoolName: string;
   schoolCode: string;
   eduOfficeCode: string;
@@ -51,6 +53,8 @@ export interface SchoolEvent {
 
 export const DEFAULT_SETTINGS: Settings = {
   childName: '',
+  childLastName: '',
+  childFirstName: '',
   schoolName: '',
   schoolCode: '',
   eduOfficeCode: '',

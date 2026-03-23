@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Search, School, Loader2, GraduationCap, Palette, RotateCcw } from 'lucide-react';
+import { X, Plus, Trash2, Search, School, Loader2, GraduationCap, Palette, RotateCcw, Check } from 'lucide-react';
 import { Settings, DEFAULT_SETTINGS, ThemeColor, DaySchedule } from '@/types';
 import { saveSettings } from '@/lib/storage';
 import { searchSchool } from '@/lib/api';
@@ -34,6 +34,7 @@ export default function SettingsModal({
   const [searching, setSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [academyModalOpen, setAcademyModalOpen] = useState(false);
+  const [themeApplied, setThemeApplied] = useState(false);
 
   useEffect(() => {
     setForm(settings);
@@ -65,9 +66,21 @@ export default function SettingsModal({
   };
 
   const handleSave = () => {
-    saveSettings(form);
-    onSave(form);
+    const updated = {
+      ...form,
+      childName: `${form.childLastName}${form.childFirstName}`.trim(),
+    };
+    saveSettings(updated);
+    onSave(updated);
     onClose();
+  };
+
+  const handleThemeApply = () => {
+    const updated = { ...settings, theme: form.theme };
+    saveSettings(updated);
+    onSave(updated);
+    setThemeApplied(true);
+    setTimeout(() => setThemeApplied(false), 1500);
   };
 
   const handleAcademySave = (schedule: Record<string, DaySchedule>) => {
@@ -104,11 +117,12 @@ export default function SettingsModal({
 
   const currentDay = form.weeklySchedule[activeDay] || DEFAULT_SETTINGS.weeklySchedule['월'];
 
-  // 학원 스케줄 요약
   const totalAcademies = DAYS.reduce(
     (sum, day) => sum + (form.weeklySchedule[day]?.academies?.length || 0),
     0
   );
+
+  const currentTheme = THEMES[form.theme];
 
   return (
     <>
@@ -126,8 +140,8 @@ export default function SettingsModal({
           </div>
 
           <div className="p-5 space-y-5">
-            {/* 테마 선택 */}
-            <div className="space-y-3">
+            {/* 테마 선택 (독립 섹션 + 별도 적용 버튼) */}
+            <div className="space-y-3 bg-gray-50 rounded-xl p-4">
               <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-1.5">
                 <Palette className="w-4 h-4" /> 테마 색상
               </h3>
@@ -136,7 +150,7 @@ export default function SettingsModal({
                   <button
                     key={t}
                     onClick={() => setForm({ ...form, theme: t })}
-                    className={`flex-1 rounded-xl p-3 text-center transition-all border-2 ${
+                    className={`flex-1 rounded-xl p-3 text-center transition-all border-2 bg-white ${
                       form.theme === t
                         ? 'border-gray-400 shadow-sm scale-105'
                         : 'border-transparent hover:border-gray-200'
@@ -147,20 +161,44 @@ export default function SettingsModal({
                   </button>
                 ))}
               </div>
+              <button
+                onClick={handleThemeApply}
+                className={`w-full py-2.5 ${currentTheme.primary} text-white rounded-xl text-sm font-semibold ${currentTheme.primaryHover} transition-colors flex items-center justify-center gap-1.5`}
+              >
+                {themeApplied ? (
+                  <>
+                    <Check className="w-4 h-4" /> 적용 완료!
+                  </>
+                ) : (
+                  '테마 적용'
+                )}
+              </button>
             </div>
 
             {/* 기본 정보 */}
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">기본 정보</h3>
-              <div>
-                <label className="settings-label">아이 이름</label>
-                <input
-                  type="text"
-                  value={form.childName}
-                  onChange={(e) => setForm({ ...form, childName: e.target.value })}
-                  placeholder="이름을 입력하세요"
-                  className="settings-input"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="settings-label">성</label>
+                  <input
+                    type="text"
+                    value={form.childLastName}
+                    onChange={(e) => setForm({ ...form, childLastName: e.target.value })}
+                    placeholder="성"
+                    className="settings-input"
+                  />
+                </div>
+                <div>
+                  <label className="settings-label">이름</label>
+                  <input
+                    type="text"
+                    value={form.childFirstName}
+                    onChange={(e) => setForm({ ...form, childFirstName: e.target.value })}
+                    placeholder="이름"
+                    className="settings-input"
+                  />
+                </div>
               </div>
 
               {/* 학교 검색 */}
@@ -178,7 +216,7 @@ export default function SettingsModal({
                   <button
                     onClick={handleSearch}
                     disabled={searching}
-                    className={`px-3 py-2 ${theme.primary} text-white rounded-xl ${theme.primaryHover} transition-colors disabled:opacity-50 flex items-center justify-center min-w-[40px]`}
+                    className={`px-3 py-2 ${currentTheme.primary} text-white rounded-xl ${currentTheme.primaryHover} transition-colors disabled:opacity-50 flex items-center justify-center min-w-[40px]`}
                   >
                     {searching ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -237,14 +275,14 @@ export default function SettingsModal({
               </div>
             </div>
 
-            {/* 학원/방과후 스케줄 - 새 창 열기 버튼 */}
+            {/* 학원/방과후 스케줄 */}
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
                 학원 / 방과후
               </h3>
               <button
                 onClick={() => setAcademyModalOpen(true)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 border-dashed border-gray-200 hover:border-gray-300 transition-colors bg-gray-50 hover:bg-gray-100`}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 border-dashed border-gray-200 hover:border-gray-300 transition-colors bg-gray-50 hover:bg-gray-100"
               >
                 <div className="flex items-center gap-2">
                   <GraduationCap className="w-5 h-5 text-gray-400" />
@@ -256,7 +294,6 @@ export default function SettingsModal({
                   {totalAcademies}개 등록됨
                 </span>
               </button>
-              {/* 미니 요약 */}
               {totalAcademies > 0 && (
                 <div className="grid grid-cols-5 gap-1">
                   {DAYS.map((day) => {
@@ -278,7 +315,6 @@ export default function SettingsModal({
                 요일별 준비물
               </h3>
 
-              {/* 요일 탭 */}
               <div className="flex gap-1">
                 {DAYS.map((day) => (
                   <button
@@ -286,7 +322,7 @@ export default function SettingsModal({
                     onClick={() => setActiveDay(day)}
                     className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
                       activeDay === day
-                        ? `${theme.tabActive} shadow-sm`
+                        ? `${currentTheme.tabActive} shadow-sm`
                         : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                     }`}
                   >
@@ -295,7 +331,6 @@ export default function SettingsModal({
                 ))}
               </div>
 
-              {/* 준비물 */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="settings-label mb-0">{activeDay}요일 준비물</label>
@@ -332,13 +367,13 @@ export default function SettingsModal({
             </div>
           </div>
 
-          {/* 저장 / 초기화 버튼 */}
+          {/* 정보 저장 / 초기화 버튼 */}
           <div className="p-5 border-t border-gray-100 space-y-2">
             <button
               onClick={handleSave}
-              className={`w-full py-3 ${theme.primary} text-white rounded-xl font-semibold ${theme.primaryHover} transition-colors shadow-sm`}
+              className={`w-full py-3 ${currentTheme.primary} text-white rounded-xl font-semibold ${currentTheme.primaryHover} transition-colors shadow-sm`}
             >
-              저장하기
+              정보 저장하기
             </button>
             <button
               onClick={() => {
@@ -358,13 +393,12 @@ export default function SettingsModal({
         </div>
       </div>
 
-      {/* 학원 스케줄 관리 모달 */}
       <AcademyScheduleModal
         isOpen={academyModalOpen}
         onClose={() => setAcademyModalOpen(false)}
         weeklySchedule={form.weeklySchedule}
         onSave={handleAcademySave}
-        theme={theme}
+        theme={currentTheme}
       />
     </>
   );
