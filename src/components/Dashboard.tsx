@@ -42,7 +42,6 @@ export default function Dashboard() {
   const [clock, setClock] = useState('');
   const [showCounter, setShowCounter] = useState(false);
   const [visitorStatsOpen, setVisitorStatsOpen] = useState(false);
-  const [showBubble, setShowBubble] = useState(false);
   const [loading, setLoading] = useState({
     weather: true,
     meal: true,
@@ -65,11 +64,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     setSettings(loadSettings());
-    const visited = localStorage.getItem('smartboard_visited');
-    if (!visited) {
-      setShowBubble(true);
-      localStorage.setItem('smartboard_visited', 'true');
-    }
   }, []);
 
   useEffect(() => {
@@ -162,18 +156,7 @@ export default function Dashboard() {
       {/* 메인 콘텐츠 */}
       <main className="max-w-6xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            {showBubble && (
-              <div className="relative mb-3 mr-4">
-                <div className={`bg-white rounded-2xl px-4 py-2.5 shadow-sm border ${theme.speechBubbleBorder} inline-block`}>
-                  <p className={`text-sm font-medium ${theme.speechBubbleText}`}>안녕하세요! 설정에서 정보를 입력하세요.</p>
-                </div>
-                {/* 오른쪽 꼬리 */}
-                <div className="absolute -bottom-2 right-8 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white" />
-              </div>
-            )}
-            <WeatherCard weather={weather} loading={loading.weather} theme={theme} />
-          </div>
+          <WeatherCard weather={weather} loading={loading.weather} theme={theme} />
 
           <ScheduleCard
             weeklySchedule={settings.weeklySchedule}
