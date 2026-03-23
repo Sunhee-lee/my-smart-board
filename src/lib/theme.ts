@@ -45,7 +45,7 @@ export interface ThemeConfig {
 
 export const THEMES: Record<ThemeColor, ThemeConfig> = {
   pink: {
-    name: '핑크톤',
+    name: '핑크',
     bg: 'bg-gradient-to-br from-pink-50 via-rose-50 to-purple-50',
     headerBg: 'bg-white/70',
     headerBorder: 'border-pink-100',
@@ -90,7 +90,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     preview: 'bg-gradient-to-br from-pink-200 to-rose-300',
   },
   yellow: {
-    name: '노란톤',
+    name: '노란',
     bg: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50',
     headerBg: 'bg-white/70',
     headerBorder: 'border-amber-100',
@@ -132,7 +132,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     preview: 'bg-gradient-to-br from-yellow-200 to-amber-300',
   },
   sky: {
-    name: '하늘색톤',
+    name: '하늘색',
     bg: 'bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50',
     headerBg: 'bg-white/70',
     headerBorder: 'border-sky-100',
@@ -174,7 +174,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     preview: 'bg-gradient-to-br from-sky-200 to-blue-300',
   },
   green: {
-    name: '초록톤',
+    name: '초록',
     bg: 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50',
     headerBg: 'bg-white/70',
     headerBorder: 'border-green-100',
@@ -216,7 +216,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     preview: 'bg-gradient-to-br from-green-200 to-emerald-300',
   },
   mono: {
-    name: '모노톤',
+    name: '모노',
     bg: 'bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-100',
     headerBg: 'bg-white/70',
     headerBorder: 'border-gray-200',

@@ -18,7 +18,7 @@ export default function EventsCard({ events, loading, hasSchool, theme }: Events
     <div className={`card ${theme.card6}`}>
       <div className="flex items-center gap-2 mb-3">
         <CalendarDays className={`w-5 h-5 ${theme.card6Icon}`} />
-        <h3 className={`card-title ${theme.card6Title}`}>{monthStr} 학사일정</h3>
+        <h3 className={`card-title ${theme.card6Title}`}>이번달 학사일정 ({monthStr})</h3>
       </div>
 
       {loading ? (
@@ -47,7 +47,7 @@ export default function EventsCard({ events, loading, hasSchool, theme }: Events
           <p className="text-sm text-gray-400">설정에서 학교를 등록해주세요</p>
         </div>
       ) : (
-        <p className="text-sm text-gray-400">{monthStr} 학사일정이 없어요.</p>
+        <p className="text-sm text-gray-400">이번달 학사일정이 없어요.</p>
       )}
     </div>
   );
