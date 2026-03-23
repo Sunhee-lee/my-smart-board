@@ -51,7 +51,8 @@ export async function POST(request: Request) {
     await writeData(data);
 
     return Response.json({ isNewDevice, totalDevices: data.devices.length });
-  } catch {
+  } catch (err) {
+    console.error('[visitors] POST error:', err);
     return Response.json({ error: 'server error' }, { status: 500 });
   }
 }
@@ -69,7 +70,8 @@ export async function GET() {
       totalVisits,
       totalDevices,
     });
-  } catch {
+  } catch (err) {
+    console.error('[visitors] GET error:', err);
     return Response.json({ error: 'server error' }, { status: 500 });
   }
 }

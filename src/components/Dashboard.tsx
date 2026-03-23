@@ -157,7 +157,7 @@ export default function Dashboard() {
             )}
           </div>
           <div className="flex items-center gap-3">
-            <h1 className={`font-title text-sm sm:text-xl ${theme.headerTitle}`}>
+            <h1 className={`font-title text-base sm:text-xl ${theme.headerTitle}`}>
               {displayName ? `${displayName}의 스마트 보드` : '나의 스마트 보드'}
             </h1>
             <button

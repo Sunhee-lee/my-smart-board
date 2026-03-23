@@ -155,7 +155,7 @@ export default function WeatherCard({ weather, loading, theme }: WeatherCardProp
             </div>
 
             {/* 옷 추천 */}
-            <div className="mt-1 bg-white/50 rounded-lg px-3 py-2 flex items-start gap-2">
+            <div className="mt-3 bg-white/50 rounded-lg px-3 py-2 flex items-start gap-2">
               <Shirt className="w-4 h-4 text-pink-400 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-[11px] font-bold text-gray-500 mb-0.5">오늘은 이렇게 입어봐!</p>
