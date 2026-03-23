@@ -12,23 +12,6 @@ interface WeatherCardProps {
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
-function getWeatherBg(icon: string): string {
-  if (!icon) return 'bg-gradient-to-br from-blue-50 to-sky-100';
-  const code = icon.slice(0, 2);
-  switch (code) {
-    case '01': return 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-100'; // 맑음
-    case '02': return 'bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-100'; // 구름 조금
-    case '03':
-    case '04': return 'bg-gradient-to-br from-gray-100 via-slate-100 to-gray-200'; // 흐림
-    case '09':
-    case '10': return 'bg-gradient-to-br from-blue-100 via-indigo-100 to-slate-200'; // 비
-    case '11': return 'bg-gradient-to-br from-slate-200 via-purple-100 to-gray-300'; // 천둥
-    case '13': return 'bg-gradient-to-br from-blue-50 via-white to-indigo-50'; // 눈
-    case '50': return 'bg-gradient-to-br from-gray-100 via-gray-50 to-slate-100'; // 안개
-    default: return 'bg-gradient-to-br from-blue-50 to-sky-100';
-  }
-}
-
 function getWeatherIcon(icon: string) {
   if (!icon) return <CloudSun className="w-5 h-5 text-sky-400" />;
   const code = icon.slice(0, 2);
@@ -93,7 +76,6 @@ function dustBadgeColor(value: number, type: 'pm10' | 'pm25') {
     if (value <= 150) return 'bg-orange-100 text-orange-600';
     return 'bg-red-100 text-red-600';
   }
-  // pm25
   if (value <= 15) return 'bg-blue-100 text-blue-600';
   if (value <= 35) return 'bg-green-100 text-green-600';
   if (value <= 75) return 'bg-orange-100 text-orange-600';
@@ -104,13 +86,11 @@ export default function WeatherCard({ weather, loading, theme }: WeatherCardProp
   const now = new Date();
   const dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${DAY_NAMES[now.getDay()]}요일`;
 
-  const weatherBg = weather ? getWeatherBg(weather.icon) : theme.card1;
-
   return (
-    <div className={`card ${weatherBg}`}>
+    <div className={`card ${theme.card1}`}>
       <div className="flex items-center gap-2 mb-3">
         {weather ? getWeatherIcon(weather.icon) : <CloudSun className={`w-5 h-5 ${theme.card1Icon}`} />}
-        <h3 className={`card-title ${weather ? 'text-gray-700' : theme.card1Title}`}>오늘의 날씨</h3>
+        <h3 className={`card-title ${theme.card1Title}`}>오늘의 날씨</h3>
       </div>
 
       <div className="space-y-2">
@@ -122,33 +102,36 @@ export default function WeatherCard({ weather, loading, theme }: WeatherCardProp
             <div className={`h-4 ${theme.skeleton1} rounded w-1/2`} />
           </div>
         ) : weather ? (
-          <div className="mt-3 space-y-2">
+          <div className="mt-2 space-y-2">
+            {/* 날씨 상태 (크게, 강조) */}
+            <p className="font-title text-xl text-gray-800">{weather.description}</p>
+
+            {/* 온도 + 체감온도 */}
             <div className="flex items-center gap-2">
               <Thermometer className="w-4 h-4 text-orange-400" />
               <span className="text-sm text-gray-700">
-                온도: <strong className="text-orange-500">{weather.temp}°C</strong>
+                <strong className="text-orange-500">{weather.temp}°C</strong>
+                <span className="text-gray-400 mx-1.5">|</span>
+                체감 <strong className="text-orange-400">{weather.feelsLike}°C</strong>
               </span>
-              <span className="text-xs text-gray-500 ml-1">({weather.description})</span>
             </div>
 
-            {/* 미세먼지 수치 */}
-            <div className="flex items-center gap-2">
+            {/* 대기질 + 미세먼지 수치 한 줄 */}
+            <div className="flex items-center gap-2 flex-wrap">
               <Wind className="w-4 h-4 text-teal-400" />
               <span className="text-sm text-gray-700">
-                대기질: <strong className={dustColor(weather.dust)}>{weather.dust}</strong>
+                대기질 <strong className={dustColor(weather.dust)}>{weather.dust}</strong>
               </span>
-            </div>
-            <div className="flex gap-2 ml-6">
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${dustBadgeColor(weather.pm10, 'pm10')}`}>
-                미세먼지 {weather.pm10}㎍/㎥
+              <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-medium ${dustBadgeColor(weather.pm10, 'pm10')}`}>
+                미세 {weather.pm10}
               </span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${dustBadgeColor(weather.pm25, 'pm25')}`}>
-                초미세먼지 {weather.pm25}㎍/㎥
+              <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-medium ${dustBadgeColor(weather.pm25, 'pm25')}`}>
+                초미세 {weather.pm25}
               </span>
             </div>
 
             {/* 옷 추천 */}
-            <div className="mt-2 bg-white/50 rounded-lg px-3 py-2 flex items-start gap-2">
+            <div className="mt-1 bg-white/50 rounded-lg px-3 py-2 flex items-start gap-2">
               <Shirt className="w-4 h-4 text-pink-400 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-[11px] font-bold text-gray-500 mb-0.5">오늘은 이렇게 입어봐!</p>

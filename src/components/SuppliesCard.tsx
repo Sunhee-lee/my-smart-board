@@ -20,7 +20,7 @@ export default function SuppliesCard({ supplies, theme }: SuppliesCardProps) {
     <div className={`card ${theme.card4}`}>
       <div className="flex items-center gap-2 mb-3">
         <Backpack className={`w-5 h-5 ${theme.card4Icon}`} />
-        <h3 className={`card-title ${theme.card4Title}`}>오늘 준비물</h3>
+        <h3 className={`card-title ${theme.card4Title}`}>오늘의 준비물</h3>
       </div>
 
       {supplies.length > 0 ? (

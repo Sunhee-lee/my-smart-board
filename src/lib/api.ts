@@ -51,6 +51,8 @@ export async function fetchMeal(
           .replace(/\([^)]*\)/g, '')
           .replace(/[0-9.]+$/g, '')
           .replace(/\s*\.\s*/g, ' ')
+          .replace(/[a-zA-Z]+/g, '')
+          .replace(/\s{2,}/g, ' ')
           .trim()
       )
       .filter(Boolean);
@@ -92,13 +94,11 @@ export async function fetchEvents(
   if (!schoolCode) return [];
   try {
     const now = new Date();
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay() + 1);
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 4);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    const from = formatDate(startOfWeek);
-    const to = formatDate(endOfWeek);
+    const from = formatDate(startOfMonth);
+    const to = formatDate(endOfMonth);
     const url = `https://open.neis.go.kr/hub/SchoolSchedule?KEY=${NEIS_API_KEY}&Type=json&ATPT_OFCDC_SC_CODE=${eduOfficeCode}&SD_SCHUL_CODE=${schoolCode}&AA_FROM_YMD=${from}&AA_TO_YMD=${to}`;
     const res = await fetch(url);
     const data = await res.json();
@@ -121,6 +121,7 @@ export async function fetchWeather(
   if (!WEATHER_API_KEY) {
     return {
       temp: 18,
+      feelsLike: 16,
       description: '맑음',
       icon: '01d',
       dust: '보통',
@@ -150,6 +151,7 @@ export async function fetchWeather(
 
     return {
       temp: Math.round(weatherData.main.temp),
+      feelsLike: Math.round(weatherData.main.feels_like),
       description: weatherData.weather[0].description,
       icon: weatherData.weather[0].icon,
       dust: dustLabels[aqi] || '보통',

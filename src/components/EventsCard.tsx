@@ -12,11 +12,13 @@ interface EventsCardProps {
 }
 
 export default function EventsCard({ events, loading, hasSchool, theme }: EventsCardProps) {
+  const monthStr = `${new Date().getMonth() + 1}월`;
+
   return (
     <div className={`card ${theme.card6}`}>
       <div className="flex items-center gap-2 mb-3">
         <CalendarDays className={`w-5 h-5 ${theme.card6Icon}`} />
-        <h3 className={`card-title ${theme.card6Title}`}>이번 주 학사일정</h3>
+        <h3 className={`card-title ${theme.card6Title}`}>{monthStr} 학사일정</h3>
       </div>
 
       {loading ? (
@@ -26,7 +28,7 @@ export default function EventsCard({ events, loading, hasSchool, theme }: Events
           ))}
         </div>
       ) : events.length > 0 ? (
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 max-h-48 overflow-y-auto">
           {events.map((evt, i) => (
             <div
               key={i}
@@ -45,7 +47,7 @@ export default function EventsCard({ events, loading, hasSchool, theme }: Events
           <p className="text-sm text-gray-400">설정에서 학교를 등록해주세요</p>
         </div>
       ) : (
-        <p className="text-sm text-gray-400">이번 주 학사일정이 없어요.</p>
+        <p className="text-sm text-gray-400">{monthStr} 학사일정이 없어요.</p>
       )}
     </div>
   );

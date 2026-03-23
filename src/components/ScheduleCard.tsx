@@ -1,6 +1,6 @@
 'use client';
 
-import { GraduationCap, Clock } from 'lucide-react';
+import { CalendarCheck, Clock } from 'lucide-react';
 import { DaySchedule } from '@/types';
 import { ThemeConfig } from '@/lib/theme';
 
@@ -8,6 +8,7 @@ interface ScheduleCardProps {
   weeklySchedule: Record<string, DaySchedule>;
   todayDay: string;
   theme: ThemeConfig;
+  childName: string;
 }
 
 const DAYS = ['월', '화', '수', '목', '금'];
@@ -16,18 +17,19 @@ function formatTime(h: string, m: string) {
   return `${h}:${m}`;
 }
 
-export default function ScheduleCard({ weeklySchedule, todayDay, theme }: ScheduleCardProps) {
+export default function ScheduleCard({ weeklySchedule, todayDay, theme, childName }: ScheduleCardProps) {
   const todayAcademies = weeklySchedule[todayDay]?.academies || [];
   const hasAnySchedule = DAYS.some((d) => (weeklySchedule[d]?.academies?.length || 0) > 0);
+  const displayName = childName?.trim() || '나';
+  const title = `${displayName}의 일정`;
 
   return (
     <div className={`card ${theme.card3}`}>
       <div className="flex items-center gap-2 mb-3">
-        <GraduationCap className={`w-5 h-5 ${theme.card3Icon}`} />
-        <h3 className={`card-title ${theme.card3Title}`}>학원 / 방과후</h3>
+        <CalendarCheck className={`w-5 h-5 ${theme.card3Icon}`} />
+        <h3 className={`card-title ${theme.card3Title}`}>{title}</h3>
       </div>
 
-      {/* 오늘 스케줄 */}
       {todayAcademies.length > 0 ? (
         <div className="space-y-2 mb-3">
           <p className="text-xs font-semibold text-gray-500">오늘 ({todayDay}요일)</p>
@@ -46,11 +48,10 @@ export default function ScheduleCard({ weeklySchedule, todayDay, theme }: Schedu
         </div>
       ) : (
         <p className="text-sm text-gray-400 mb-3">
-          오늘은 학원이 없어요! 자유 시간!
+          오늘은 일정이 없어요! 자유 시간!
         </p>
       )}
 
-      {/* 주간 미니 스케줄러 */}
       {hasAnySchedule && (
         <div className="border-t border-gray-100 pt-2">
           <p className="text-[10px] text-gray-400 mb-1.5">이번 주</p>

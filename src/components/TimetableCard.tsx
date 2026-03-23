@@ -13,23 +13,16 @@ interface TimetableCardProps {
   classNum: string;
 }
 
-const PERIOD_COLORS = [
-  'bg-pink-100 text-pink-600',
-  'bg-blue-100 text-blue-600',
-  'bg-green-100 text-green-600',
-  'bg-yellow-100 text-yellow-600',
-  'bg-purple-100 text-purple-600',
-  'bg-teal-100 text-teal-600',
-];
-
 export default function TimetableCard({ timetable, loading, hasSchool, theme, grade, classNum }: TimetableCardProps) {
-  const title = hasSchool ? `${grade}학년 ${classNum}반 오늘의 시간표` : '오늘의 시간표';
+  const subtitle = hasSchool ? `(${grade}학년 ${classNum}반)` : '';
 
   return (
     <div className={`card ${theme.card5}`}>
       <div className="flex items-center gap-2 mb-3">
         <BookOpen className={`w-5 h-5 ${theme.card5Icon}`} />
-        <h3 className={`card-title ${theme.card5Title}`}>{title}</h3>
+        <h3 className={`card-title ${theme.card5Title}`}>
+          오늘의 시간표{subtitle && <span className="text-xs font-normal ml-1 opacity-70">{subtitle}</span>}
+        </h3>
       </div>
 
       {loading ? (
@@ -40,13 +33,13 @@ export default function TimetableCard({ timetable, loading, hasSchool, theme, gr
         </div>
       ) : timetable.length > 0 ? (
         <div className="space-y-1.5">
-          {timetable.map((item, i) => (
+          {timetable.map((item) => (
             <div
               key={item.period}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 ${PERIOD_COLORS[i % PERIOD_COLORS.length]}`}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 bg-white/60 border border-gray-100"
             >
-              <span className="font-bold text-sm min-w-[3.5rem] whitespace-nowrap">{item.period}교시</span>
-              <span className="text-sm font-medium">{item.subject}</span>
+              <span className="font-bold text-sm min-w-[3.5rem] whitespace-nowrap text-gray-500">{item.period}교시</span>
+              <span className="text-sm font-medium text-gray-700">{item.subject}</span>
             </div>
           ))}
         </div>

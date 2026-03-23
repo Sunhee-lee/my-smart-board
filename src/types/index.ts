@@ -26,6 +26,7 @@ export interface Settings {
 
 export interface WeatherData {
   temp: number;
+  feelsLike: number;
   description: string;
   icon: string;
   dust: string;
