@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { Settings, WeatherData, MealData, TimetableItem, SchoolEvent } from '@/types';
 import { loadSettings } from '@/lib/storage';
-import { fetchWeather, fetchMeal, fetchTimetable, fetchEvents } from '@/lib/api';
+import { fetchWeather, fetchTomorrowWeather, fetchMeal, fetchTimetable, fetchEvents } from '@/lib/api';
 import { THEMES } from '@/lib/theme';
 import WeatherCard from './WeatherCard';
 import MealCard from './MealCard';
@@ -54,9 +54,10 @@ export default function Dashboard() {
   const [visitorStatsOpen, setVisitorStatsOpen] = useState(false);
   const [refreshingWeather, setRefreshingWeather] = useState(false);
   const [viewTomorrow, setViewTomorrow] = useState(false);
+  const [tomorrowWeather, setTomorrowWeather] = useState<WeatherData | null>(null);
   const [tomorrowMeal, setTomorrowMeal] = useState<MealData | null>(null);
   const [tomorrowTimetable, setTomorrowTimetable] = useState<TimetableItem[]>([]);
-  const [tomorrowLoading, setTomorrowLoading] = useState({ meal: false, timetable: false });
+  const [tomorrowLoading, setTomorrowLoading] = useState({ weather: false, meal: false, timetable: false });
   const [loading, setLoading] = useState({
     weather: true,
     meal: true,
@@ -197,28 +198,58 @@ export default function Dashboard() {
   }, [settings, fetchNeisData]);
 
   const fetchTomorrowData = useCallback(async (s: Settings) => {
-    if (!s.schoolCode) return;
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    setTomorrowLoading({ meal: true, timetable: true });
-    const [mealData, ttData] = await Promise.all([
-      fetchMeal(s.eduOfficeCode, s.schoolCode, tomorrow),
-      fetchTimetable(s.eduOfficeCode, s.schoolCode, s.grade, s.classNum, tomorrow),
-    ]);
-    setTomorrowMeal(mealData);
-    setTomorrowTimetable(ttData);
-    setTomorrowLoading({ meal: false, timetable: false });
+    setTomorrowLoading({ weather: true, meal: !s.schoolCode, timetable: !s.schoolCode });
+
+    // 날씨는 학교 설정 없이도 가져오기 (GPS 좌표 기반)
+    const COORD_KEY = 'smart-board-geo-cache';
+    const weatherPromise = (async () => {
+      try {
+        const geoCache = localStorage.getItem(COORD_KEY);
+        if (geoCache) {
+          const { lat, lon } = JSON.parse(geoCache);
+          return fetchTomorrowWeather(lat, lon);
+        }
+      } catch { /* 무시 */ }
+      return new Promise<WeatherData | null>((resolve) => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => resolve(fetchTomorrowWeather(pos.coords.latitude, pos.coords.longitude)),
+            () => resolve(fetchTomorrowWeather(37.5665, 126.978))
+          );
+        } else {
+          resolve(null);
+        }
+      });
+    })();
+
+    if (s.schoolCode) {
+      setTomorrowLoading({ weather: true, meal: true, timetable: true });
+      const [weatherData, mealData, ttData] = await Promise.all([
+        weatherPromise,
+        fetchMeal(s.eduOfficeCode, s.schoolCode, tomorrow),
+        fetchTimetable(s.eduOfficeCode, s.schoolCode, s.grade, s.classNum, tomorrow),
+      ]);
+      setTomorrowWeather(weatherData);
+      setTomorrowMeal(mealData);
+      setTomorrowTimetable(ttData);
+    } else {
+      const weatherData = await weatherPromise;
+      setTomorrowWeather(weatherData);
+    }
+    setTomorrowLoading({ weather: false, meal: false, timetable: false });
   }, []);
 
   const toggleView = useCallback(() => {
     if (!viewTomorrow && settings) {
       // 내일 데이터가 없으면 가져오기
-      if (!tomorrowMeal && tomorrowTimetable.length === 0 && !tomorrowLoading.meal) {
+      if (!tomorrowWeather && !tomorrowLoading.weather) {
         fetchTomorrowData(settings);
       }
     }
     setViewTomorrow((prev) => !prev);
-  }, [viewTomorrow, settings, tomorrowMeal, tomorrowTimetable, tomorrowLoading, fetchTomorrowData]);
+  }, [viewTomorrow, settings, tomorrowWeather, tomorrowLoading, fetchTomorrowData]);
 
   const handleSaveSettings = (newSettings: Settings) => {
     setSettings(newSettings);
@@ -278,7 +309,14 @@ export default function Dashboard() {
       {/* 메인 콘텐츠 */}
       <main className="max-w-6xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <WeatherCard weather={weather} loading={loading.weather} theme={theme} onRefresh={refreshWeather} refreshing={refreshingWeather} />
+          <WeatherCard
+            weather={viewTomorrow ? tomorrowWeather : weather}
+            loading={viewTomorrow ? tomorrowLoading.weather : loading.weather}
+            theme={theme}
+            onRefresh={viewTomorrow ? undefined : refreshWeather}
+            refreshing={refreshingWeather}
+            dayLabel={dayLabel}
+          />
 
           <TimetableCard
             timetable={viewTomorrow ? tomorrowTimetable : timetable}

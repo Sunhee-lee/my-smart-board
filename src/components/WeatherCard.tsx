@@ -10,6 +10,7 @@ interface WeatherCardProps {
   theme: ThemeConfig;
   onRefresh?: () => void;
   refreshing?: boolean;
+  dayLabel?: string;
 }
 
 function getWeatherEmoji(icon: string): string {
@@ -100,12 +101,12 @@ function dustBadgeColor(value: number, type: 'pm10' | 'pm25') {
   return 'bg-red-100 text-red-600';
 }
 
-export default function WeatherCard({ weather, loading, theme, onRefresh, refreshing }: WeatherCardProps) {
+export default function WeatherCard({ weather, loading, theme, onRefresh, refreshing, dayLabel = '오늘의' }: WeatherCardProps) {
   return (
     <div className={`card ${theme.card1}`}>
       <div className="flex items-center gap-2 mb-3">
         {weather ? getWeatherIcon(weather.icon) : <CloudSun className={`w-5 h-5 ${theme.card1Icon}`} />}
-        <h3 className={`card-title ${theme.card1Title}`}>오늘의 날씨</h3>
+        <h3 className={`card-title ${theme.card1Title}`}>{dayLabel} 날씨</h3>
       </div>
 
       <div className="space-y-2">
@@ -160,7 +161,7 @@ export default function WeatherCard({ weather, loading, theme, onRefresh, refres
             <div className="mt-5 bg-white/50 rounded-lg px-3 py-2 flex items-start gap-2">
               <Shirt className="w-4 h-4 text-pink-400 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-[11px] font-bold text-gray-500 mb-0.5">오늘은 이렇게 입어봐!</p>
+                <p className="text-[11px] font-bold text-gray-500 mb-0.5">{dayLabel === '내일의' ? '내일은' : '오늘은'} 이렇게 입어봐!</p>
                 <p className="text-xs text-gray-700">
                   {getClothingRecommendation(weather.temp, weather.icon, weather.dust)}
                 </p>

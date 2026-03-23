@@ -137,6 +137,133 @@ async function reverseGeocode(lat: number, lon: number): Promise<string> {
   }
 }
 
+// ── 내일 날씨 (forecast API, 현재 시각 기준) ──
+export async function fetchTomorrowWeather(
+  lat: number,
+  lon: number
+): Promise<WeatherData | null> {
+  const locationPromise = reverseGeocode(lat, lon);
+
+  if (!WEATHER_API_KEY) {
+    const locationName = await locationPromise;
+    return {
+      temp: 17,
+      tempMin: 11,
+      tempMax: 21,
+      feelsLike: 15,
+      description: '맑음',
+      icon: '01d',
+      dust: '보통',
+      pm10: 30,
+      pm25: 12,
+      rainChance: 5,
+      locationName: locationName || '서울',
+    };
+  }
+
+  try {
+    // forecast: 5일치 3시간 간격 (cnt=16 → ~48시간)
+    const [forecastRes, airForecastRes, locationName] = await Promise.all([
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr&cnt=16`),
+      fetch(`https://api.openweathermap.org/data/2.5/air_pollution/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}`),
+      locationPromise,
+    ]);
+
+    const forecastData = await forecastRes.json();
+    const airForecastData = await airForecastRes.json();
+
+    const now = new Date();
+    const tomorrowDate = new Date(now);
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrowDateStr = tomorrowDate.toISOString().slice(0, 10); // YYYY-MM-DD
+    const currentHour = now.getHours();
+
+    // 내일 날짜에 해당하는 forecast 항목들 필터
+    interface ForecastItem {
+      dt: number;
+      dt_txt: string;
+      main: { temp: number; temp_min: number; temp_max: number; feels_like: number };
+      weather: { description: string; icon: string }[];
+      pop?: number;
+    }
+    const tomorrowEntries: ForecastItem[] = (forecastData?.list || []).filter(
+      (item: ForecastItem) => item.dt_txt?.startsWith(tomorrowDateStr)
+    );
+
+    if (tomorrowEntries.length === 0) return null;
+
+    // 현재 시각과 가장 가까운 항목 선택
+    let closest = tomorrowEntries[0];
+    let minDiff = Infinity;
+    for (const entry of tomorrowEntries) {
+      const entryHour = new Date(entry.dt * 1000).getHours();
+      const diff = Math.abs(entryHour - currentHour);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = entry;
+      }
+    }
+
+    // 내일 전체의 최고/최저 기온
+    const temps = tomorrowEntries.map((e) => e.main.temp);
+    const tempMin = Math.round(Math.min(...temps));
+    const tempMax = Math.round(Math.max(...temps));
+
+    // 내일 전체의 강수확률 최댓값
+    const pops = tomorrowEntries.map((e) => Math.round((e.pop ?? 0) * 100));
+    const rainChance = Math.max(...pops);
+
+    // 내일의 미세먼지: 현재 시각에 가장 가까운 항목
+    interface AirItem {
+      dt: number;
+      main: { aqi: number };
+      components: { pm10: number; pm2_5: number };
+    }
+    const tomorrowAirEntries: AirItem[] = (airForecastData?.list || []).filter(
+      (item: AirItem) => {
+        const itemDate = new Date(item.dt * 1000).toISOString().slice(0, 10);
+        return itemDate === tomorrowDateStr;
+      }
+    );
+
+    let airClosest = tomorrowAirEntries[0];
+    if (tomorrowAirEntries.length > 0) {
+      let airMinDiff = Infinity;
+      for (const entry of tomorrowAirEntries) {
+        const entryHour = new Date(entry.dt * 1000).getHours();
+        const diff = Math.abs(entryHour - currentHour);
+        if (diff < airMinDiff) {
+          airMinDiff = diff;
+          airClosest = entry;
+        }
+      }
+    }
+
+    const aqi = airClosest?.main?.aqi ?? 2;
+    const pm10 = Math.round(airClosest?.components?.pm10 ?? 0);
+    const pm25 = Math.round(airClosest?.components?.pm2_5 ?? 0);
+    const dustLabels: Record<number, string> = {
+      1: '좋음', 2: '보통', 3: '나쁨', 4: '매우나쁨', 5: '위험',
+    };
+
+    return {
+      temp: Math.round(closest.main.temp),
+      tempMin,
+      tempMax,
+      feelsLike: Math.round(closest.main.feels_like),
+      description: closest.weather[0].description,
+      icon: closest.weather[0].icon,
+      dust: dustLabels[aqi] || '보통',
+      pm10,
+      pm25,
+      rainChance,
+      locationName: locationName || '',
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ── 날씨 (OpenWeatherMap + 미세먼지) ──
 export async function fetchWeather(
   lat: number,
