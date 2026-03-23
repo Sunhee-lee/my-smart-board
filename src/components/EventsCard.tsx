@@ -18,7 +18,7 @@ export default function EventsCard({ events, loading, hasSchool, theme }: Events
     <div className={`card ${theme.card6}`}>
       <div className="flex items-center gap-2 mb-3">
         <CalendarDays className={`w-5 h-5 ${theme.card6Icon}`} />
-        <h3 className={`card-title ${theme.card6Title}`}>학사일정 ({monthStr})</h3>
+        <h3 className={`card-title ${theme.card6Title}`}>학사일정<span className="text-xs font-normal ml-1 opacity-70">({monthStr})</span></h3>
       </div>
 
       {loading ? (

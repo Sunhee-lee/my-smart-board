@@ -26,12 +26,11 @@ export default function ScheduleCard({ weeklySchedule, todayDay, theme, childNam
     <div className={`card ${theme.card3}`}>
       <div className="flex items-center gap-2 mb-3">
         <CalendarCheck className={`w-5 h-5 ${theme.card3Icon}`} />
-        <h3 className={`card-title ${theme.card3Title}`}>{title}</h3>
+        <h3 className={`card-title ${theme.card3Title}`}>{title}<span className="text-xs font-normal ml-1 opacity-70">({todayDay}요일)</span></h3>
       </div>
 
       {todayAcademies.length > 0 ? (
         <div className="space-y-2 mb-3">
-          <p className="text-xs font-semibold text-gray-500">오늘 ({todayDay}요일)</p>
           {todayAcademies.map((item, i) => (
             <div
               key={i}
