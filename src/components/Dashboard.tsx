@@ -307,7 +307,7 @@ export default function Dashboard() {
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main className="max-w-6xl mx-auto px-4 py-6">
+      <main className="max-w-6xl mx-auto px-4 pt-6 pb-2">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <WeatherCard
             weather={viewTomorrow ? tomorrowWeather : weather}
@@ -350,20 +350,24 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* 하단 */}
-      <footer className="max-w-6xl mx-auto px-4 py-1 flex items-center justify-between">
-        <button
-          onClick={() => setVisitorStatsOpen(true)}
-          className="text-[9px] text-gray-300 hover:text-gray-400 transition-colors cursor-pointer"
-          aria-label="방문 통계"
-        >
-          created by 이츠써니
-        </button>
+      {/* 내일이 궁금해 / 오늘로 돌아가기 버튼 */}
+      <div className="max-w-6xl mx-auto px-4 pt-1 pb-6 flex justify-end">
         <button
           onClick={toggleView}
           className={`card-title ${theme.headerIcon} hover:opacity-70 transition-opacity cursor-pointer`}
         >
           {viewTomorrow ? '← 오늘로 돌아가기' : '내일이 궁금해 →'}
+        </button>
+      </div>
+
+      {/* 하단 크레딧 */}
+      <footer className="max-w-6xl mx-auto px-4 pb-2">
+        <button
+          onClick={() => setVisitorStatsOpen(true)}
+          className="text-[9px] text-gray-200/50 hover:text-gray-300 transition-colors cursor-pointer"
+          aria-label="방문 통계"
+        >
+          created by 이츠써니
         </button>
       </footer>
 
