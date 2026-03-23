@@ -148,16 +148,18 @@ export default function Dashboard() {
       {/* 상단 바 */}
       <header className={`sticky top-0 z-10 ${theme.headerBg} backdrop-blur-md border-b ${theme.headerBorder}`}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className={`font-title text-xl ${theme.headerTitle}`}>
-            {displayName ? `${displayName}의 스마트 보드` : '나의 스마트 보드'}
-          </h1>
           <div className="flex items-center gap-3">
             {clock && (
-              <div className={`text-right tabular-nums ${theme.headerIcon}`}>
-                <div className="text-[11px] font-medium leading-tight">{dateStr}</div>
-                <div className="text-sm font-bold leading-tight">{clock}</div>
+              <div className={`text-left tabular-nums ${theme.headerIcon}`}>
+                <div className="text-sm font-medium leading-tight">{dateStr}</div>
+                <div className="text-xl font-bold leading-tight">{clock}</div>
               </div>
             )}
+          </div>
+          <div className="flex items-center gap-3">
+            <h1 className={`font-title text-xl ${theme.headerTitle}`}>
+              {displayName ? `${displayName}의 스마트 보드` : '나의 스마트 보드'}
+            </h1>
             <button
               onClick={() => setSettingsOpen(true)}
               className={`p-2 rounded-full ${theme.headerHover} transition-colors`}
@@ -174,8 +176,6 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <WeatherCard weather={weather} loading={loading.weather} theme={theme} />
 
-          <MealCard meal={meal} loading={loading.meal} hasSchool={!!settings.schoolCode} theme={theme} />
-
           <ScheduleCard
             weeklySchedule={settings.weeklySchedule}
             todayDay={today}
@@ -184,6 +184,8 @@ export default function Dashboard() {
           />
 
           <SuppliesCard supplies={todaySchedule.supplies} theme={theme} />
+
+          <MealCard meal={meal} loading={loading.meal} hasSchool={!!settings.schoolCode} theme={theme} />
 
           <TimetableCard timetable={timetable} loading={loading.timetable} hasSchool={!!settings.schoolCode} theme={theme} grade={settings.grade} classNum={settings.classNum} />
 
