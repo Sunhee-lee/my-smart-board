@@ -23,6 +23,15 @@ function getDisplayName(s: Settings): string {
   return '';
 }
 
+function formatDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const dd = d.getDate();
+  const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+  const day = DAY_NAMES[d.getDay()];
+  return `${y}년 ${m}월 ${dd}일 (${day})`;
+}
+
 function formatClock(d: Date): string {
   const h = d.getHours();
   const m = String(d.getMinutes()).padStart(2, '0');
@@ -40,6 +49,7 @@ export default function Dashboard() {
   const [timetable, setTimetable] = useState<TimetableItem[]>([]);
   const [events, setEvents] = useState<SchoolEvent[]>([]);
   const [clock, setClock] = useState('');
+  const [dateStr, setDateStr] = useState('');
   const [showCounter, setShowCounter] = useState(false);
   const [visitorStatsOpen, setVisitorStatsOpen] = useState(false);
   const [loading, setLoading] = useState({
@@ -51,8 +61,14 @@ export default function Dashboard() {
 
   // 실시간 시계
   useEffect(() => {
-    setClock(formatClock(new Date()));
-    const timer = setInterval(() => setClock(formatClock(new Date())), 1000);
+    const now = new Date();
+    setClock(formatClock(now));
+    setDateStr(formatDate(now));
+    const timer = setInterval(() => {
+      const n = new Date();
+      setClock(formatClock(n));
+      setDateStr(formatDate(n));
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -138,9 +154,10 @@ export default function Dashboard() {
           </h1>
           <div className="flex items-center gap-3">
             {clock && (
-              <span className={`text-lg font-bold tabular-nums ${theme.headerIcon}`}>
-                {clock}
-              </span>
+              <div className={`text-right tabular-nums ${theme.headerIcon}`}>
+                <div className="text-[11px] font-medium leading-tight">{dateStr}</div>
+                <div className="text-sm font-bold leading-tight">{clock}</div>
+              </div>
             )}
             <button
               onClick={() => setSettingsOpen(true)}
