@@ -176,7 +176,7 @@ export default function Dashboard() {
       </main>
 
       {/* 하단 */}
-      <footer className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <footer className="max-w-6xl mx-auto px-4 py-1 flex items-center justify-between">
         <span className="text-[9px] text-gray-300">created by 이츠써니</span>
         <button
           onClick={() => setVisitorStatsOpen(true)}
