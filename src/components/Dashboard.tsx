@@ -52,6 +52,7 @@ export default function Dashboard() {
   const [dateStr, setDateStr] = useState('');
   const [showCounter, setShowCounter] = useState(false);
   const [visitorStatsOpen, setVisitorStatsOpen] = useState(false);
+  const [refreshingWeather, setRefreshingWeather] = useState(false);
   const [loading, setLoading] = useState({
     weather: true,
     meal: true,
@@ -132,6 +133,45 @@ export default function Dashboard() {
     }
   }, [settings]);
 
+  const refreshWeather = useCallback(() => {
+    const CACHE_KEY = 'smart-board-weather-cache';
+    const COORD_KEY = 'smart-board-geo-cache';
+    setRefreshingWeather(true);
+
+    const loadWeather = async (lat: number, lon: number) => {
+      localStorage.setItem(COORD_KEY, JSON.stringify({ lat, lon }));
+      const data = await fetchWeather(lat, lon);
+      if (data) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+      }
+      setWeather(data);
+      setRefreshingWeather(false);
+    };
+
+    // 캐시 삭제 후 GPS로 새로 가져오기
+    localStorage.removeItem(CACHE_KEY);
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => loadWeather(pos.coords.latitude, pos.coords.longitude),
+        () => {
+          // GPS 실패 시 캐시된 좌표 사용
+          try {
+            const geoCache = localStorage.getItem(COORD_KEY);
+            if (geoCache) {
+              const { lat, lon } = JSON.parse(geoCache);
+              loadWeather(lat, lon);
+              return;
+            }
+          } catch { /* 무시 */ }
+          loadWeather(37.5665, 126.978);
+        }
+      );
+    } else {
+      setRefreshingWeather(false);
+    }
+  }, []);
+
   const fetchNeisData = useCallback(async (s: Settings) => {
     if (!s.schoolCode) {
       setLoading((prev) => ({ ...prev, meal: false, timetable: false, events: false }));
@@ -205,7 +245,7 @@ export default function Dashboard() {
       {/* 메인 콘텐츠 */}
       <main className="max-w-6xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <WeatherCard weather={weather} loading={loading.weather} theme={theme} />
+          <WeatherCard weather={weather} loading={loading.weather} theme={theme} onRefresh={refreshWeather} refreshing={refreshingWeather} />
 
           <TimetableCard timetable={timetable} loading={loading.timetable} hasSchool={!!settings.schoolCode} theme={theme} grade={settings.grade} classNum={settings.classNum} />
 

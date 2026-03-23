@@ -130,6 +130,7 @@ export async function fetchWeather(
       pm10: 35,
       pm25: 15,
       rainChance: 10,
+      locationName: '서울',
     };
   }
   try {
@@ -169,6 +170,7 @@ export async function fetchWeather(
       pm10,
       pm25,
       rainChance,
+      locationName: weatherData.name || '',
     };
   } catch {
     return null;

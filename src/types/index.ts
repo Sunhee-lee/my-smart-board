@@ -37,6 +37,7 @@ export interface WeatherData {
   pm10: number;
   pm25: number;
   rainChance: number;
+  locationName?: string;
 }
 
 export interface MealData {

@@ -1,6 +1,6 @@
 'use client';
 
-import { CloudSun, Thermometer, Wind, Sun, CloudRain, CloudSnow, Cloud, CloudLightning, CloudDrizzle, Shirt, Droplets } from 'lucide-react';
+import { CloudSun, Thermometer, Wind, Sun, CloudRain, CloudSnow, Cloud, CloudLightning, CloudDrizzle, Shirt, Droplets, MapPin, RefreshCw } from 'lucide-react';
 import { WeatherData } from '@/types';
 import { ThemeConfig } from '@/lib/theme';
 
@@ -8,6 +8,8 @@ interface WeatherCardProps {
   weather: WeatherData | null;
   loading: boolean;
   theme: ThemeConfig;
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }
 
 function getWeatherEmoji(icon: string): string {
@@ -98,7 +100,7 @@ function dustBadgeColor(value: number, type: 'pm10' | 'pm25') {
   return 'bg-red-100 text-red-600';
 }
 
-export default function WeatherCard({ weather, loading, theme }: WeatherCardProps) {
+export default function WeatherCard({ weather, loading, theme, onRefresh, refreshing }: WeatherCardProps) {
   return (
     <div className={`card ${theme.card1}`}>
       <div className="flex items-center gap-2 mb-3">
@@ -163,6 +165,22 @@ export default function WeatherCard({ weather, loading, theme }: WeatherCardProp
                   {getClothingRecommendation(weather.temp, weather.icon, weather.dust)}
                 </p>
               </div>
+            </div>
+
+            {/* 위치 정보 + 새로고침 */}
+            <div className="mt-2 flex items-center justify-end gap-1.5">
+              <MapPin className="w-3 h-3 text-gray-400" />
+              <span className="text-[11px] text-gray-400">{weather.locationName || '위치 정보 없음'}</span>
+              {onRefresh && (
+                <button
+                  onClick={onRefresh}
+                  disabled={refreshing}
+                  className="ml-1 p-0.5 rounded hover:bg-gray-100 transition-colors disabled:opacity-50"
+                  aria-label="날씨 새로고침"
+                >
+                  <RefreshCw className={`w-3 h-3 text-gray-400 ${refreshing ? 'animate-spin' : ''}`} />
+                </button>
+              )}
             </div>
           </div>
         ) : (
