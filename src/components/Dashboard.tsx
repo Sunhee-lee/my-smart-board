@@ -174,14 +174,14 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <WeatherCard weather={weather} loading={loading.weather} theme={theme} />
 
+          <MealCard meal={meal} loading={loading.meal} hasSchool={!!settings.schoolCode} theme={theme} />
+
           <ScheduleCard
             weeklySchedule={settings.weeklySchedule}
             todayDay={today}
             theme={theme}
             childName={displayName}
           />
-
-          <MealCard meal={meal} loading={loading.meal} hasSchool={!!settings.schoolCode} theme={theme} />
 
           <SuppliesCard supplies={todaySchedule.supplies} theme={theme} />
 
