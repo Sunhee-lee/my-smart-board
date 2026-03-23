@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Search, School, Loader2, GraduationCap, Palette } from 'lucide-react';
+import { X, Plus, Trash2, Search, School, Loader2, GraduationCap, Palette, RotateCcw } from 'lucide-react';
 import { Settings, DEFAULT_SETTINGS, ThemeColor, DaySchedule } from '@/types';
 import { saveSettings } from '@/lib/storage';
 import { searchSchool } from '@/lib/api';
@@ -332,13 +332,27 @@ export default function SettingsModal({
             </div>
           </div>
 
-          {/* 저장 버튼 */}
-          <div className="p-5 border-t border-gray-100">
+          {/* 저장 / 초기화 버튼 */}
+          <div className="p-5 border-t border-gray-100 space-y-2">
             <button
               onClick={handleSave}
               className={`w-full py-3 ${theme.primary} text-white rounded-xl font-semibold ${theme.primaryHover} transition-colors shadow-sm`}
             >
               저장하기
+            </button>
+            <button
+              onClick={() => {
+                if (window.confirm('모든 설정을 초기화할까요? 저장된 데이터가 모두 삭제됩니다.')) {
+                  setForm(DEFAULT_SETTINGS);
+                  saveSettings(DEFAULT_SETTINGS);
+                  onSave(DEFAULT_SETTINGS);
+                  onClose();
+                }
+              }}
+              className="w-full py-2.5 border border-red-200 text-red-400 rounded-xl text-sm font-medium hover:bg-red-50 hover:text-red-500 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              설정 초기화
             </button>
           </div>
         </div>

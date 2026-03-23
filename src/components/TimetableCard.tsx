@@ -9,6 +9,8 @@ interface TimetableCardProps {
   loading: boolean;
   hasSchool: boolean;
   theme: ThemeConfig;
+  grade: string;
+  classNum: string;
 }
 
 const PERIOD_COLORS = [
@@ -20,12 +22,14 @@ const PERIOD_COLORS = [
   'bg-teal-100 text-teal-600',
 ];
 
-export default function TimetableCard({ timetable, loading, hasSchool, theme }: TimetableCardProps) {
+export default function TimetableCard({ timetable, loading, hasSchool, theme, grade, classNum }: TimetableCardProps) {
+  const title = hasSchool ? `${grade}학년 ${classNum}반 오늘의 시간표` : '오늘의 시간표';
+
   return (
     <div className={`card ${theme.card5}`}>
       <div className="flex items-center gap-2 mb-3">
         <BookOpen className={`w-5 h-5 ${theme.card5Icon}`} />
-        <h3 className={`card-title ${theme.card5Title}`}>오늘 시간표</h3>
+        <h3 className={`card-title ${theme.card5Title}`}>{title}</h3>
       </div>
 
       {loading ? (

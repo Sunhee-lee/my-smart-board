@@ -29,6 +29,8 @@ export interface WeatherData {
   description: string;
   icon: string;
   dust: string;
+  pm10: number;
+  pm25: number;
 }
 
 export interface MealData {

@@ -102,7 +102,7 @@ export default function Dashboard() {
       <header className={`sticky top-0 z-10 ${theme.headerBg} backdrop-blur-md border-b ${theme.headerBorder}`}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className={`font-title text-xl ${theme.headerTitle} flex items-center gap-2`}>
-            <span className="text-2xl">🎒</span> 스마트 등교 대시보드
+            <span className="text-2xl">🎒</span> {settings.childName?.trim() ? `${settings.childName}의 스마트 보드` : '스마트 보드'}
           </h1>
           <button
             onClick={() => setSettingsOpen(true)}
@@ -136,7 +136,7 @@ export default function Dashboard() {
           <SuppliesCard supplies={todaySchedule.supplies} theme={theme} />
 
           {/* 좌하단: 시간표 */}
-          <TimetableCard timetable={timetable} loading={loading.timetable} hasSchool={!!settings.schoolCode} theme={theme} />
+          <TimetableCard timetable={timetable} loading={loading.timetable} hasSchool={!!settings.schoolCode} theme={theme} grade={settings.grade} classNum={settings.classNum} />
 
           {/* 우하단: 학사일정 */}
           <EventsCard events={events} loading={loading.events} hasSchool={!!settings.schoolCode} theme={theme} />

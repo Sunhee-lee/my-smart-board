@@ -1,0 +1,38 @@
+<svg width="400" height="420" viewBox="0 0 400 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Left ear -->
+  <circle cx="120" cy="75" r="50" fill="white" stroke="#2a2a2a" stroke-width="8"/>
+  <!-- Right ear -->
+  <circle cx="280" cy="75" r="50" fill="white" stroke="#2a2a2a" stroke-width="8"/>
+  <!-- Body -->
+  <ellipse cx="200" cy="320" rx="110" ry="95" fill="white" stroke="#2a2a2a" stroke-width="8"/>
+  <!-- Right arm (waving) -->
+  <ellipse cx="340" cy="260" rx="35" ry="45" fill="white" stroke="#2a2a2a" stroke-width="8" transform="rotate(-20 340 260)"/>
+  <!-- Paw pad big -->
+  <ellipse cx="337" cy="255" rx="12" ry="15" fill="#3a3a3a" opacity="0.25"/>
+  <!-- Paw pad small 1 -->
+  <circle cx="325" cy="240" r="6" fill="#3a3a3a" opacity="0.25"/>
+  <!-- Paw pad small 2 -->
+  <circle cx="350" cy="240" r="6" fill="#3a3a3a" opacity="0.25"/>
+  <!-- Paw pad small 3 -->
+  <circle cx="337" cy="232" r="6" fill="#3a3a3a" opacity="0.25"/>
+  <!-- Left arm -->
+  <ellipse cx="65" cy="290" rx="30" ry="42" fill="white" stroke="#2a2a2a" stroke-width="8" transform="rotate(12 65 290)"/>
+  <!-- Head -->
+  <ellipse cx="200" cy="175" rx="120" ry="108" fill="white" stroke="#2a2a2a" stroke-width="8"/>
+  <!-- Left eye -->
+  <ellipse cx="155" cy="165" rx="18" ry="20" fill="#2a2a2a"/>
+  <ellipse cx="149" cy="158" rx="7" ry="8" fill="white"/>
+  <!-- Right eye -->
+  <ellipse cx="245" cy="165" rx="18" ry="20" fill="#2a2a2a"/>
+  <ellipse cx="239" cy="158" rx="7" ry="8" fill="white"/>
+  <!-- Left blush -->
+  <ellipse cx="120" cy="200" rx="22" ry="13" fill="#FFB0B0" opacity="0.6"/>
+  <!-- Right blush -->
+  <ellipse cx="280" cy="200" rx="22" ry="13" fill="#FFB0B0" opacity="0.6"/>
+  <!-- Nose -->
+  <ellipse cx="200" cy="195" rx="12" ry="9" fill="#2a2a2a"/>
+  <!-- Mouth -->
+  <path d="M178 210 Q200 235 222 210" stroke="#2a2a2a" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- Tongue -->
+  <ellipse cx="200" cy="222" rx="12" ry="10" fill="#FF7B7B"/>
+</svg>

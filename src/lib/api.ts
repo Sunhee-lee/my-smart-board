@@ -48,9 +48,9 @@ export async function fetchMeal(
       .split('\n')
       .map((s: string) =>
         s
-          .replace(/\([^)]*\)/g, '')   // (1.2.5) 형태 제거
-          .replace(/[0-9.]+$/g, '')     // 끝에 붙은 숫자.점 제거
-          .replace(/\s*\.\s*/g, ' ')    // 남은 점 정리
+          .replace(/\([^)]*\)/g, '')
+          .replace(/[0-9.]+$/g, '')
+          .replace(/\s*\.\s*/g, ' ')
           .trim()
       )
       .filter(Boolean);
@@ -119,12 +119,13 @@ export async function fetchWeather(
   lon: number
 ): Promise<WeatherData | null> {
   if (!WEATHER_API_KEY) {
-    // API 키가 없으면 더미 데이터 반환
     return {
       temp: 18,
       description: '맑음',
       icon: '01d',
       dust: '보통',
+      pm10: 35,
+      pm25: 15,
     };
   }
   try {
@@ -137,6 +138,8 @@ export async function fetchWeather(
     const airData = await airRes.json();
 
     const aqi = airData?.list?.[0]?.main?.aqi ?? 2;
+    const pm10 = Math.round(airData?.list?.[0]?.components?.pm10 ?? 0);
+    const pm25 = Math.round(airData?.list?.[0]?.components?.pm2_5 ?? 0);
     const dustLabels: Record<number, string> = {
       1: '좋음',
       2: '보통',
@@ -150,6 +153,8 @@ export async function fetchWeather(
       description: weatherData.weather[0].description,
       icon: weatherData.weather[0].icon,
       dust: dustLabels[aqi] || '보통',
+      pm10,
+      pm25,
     };
   } catch {
     return null;
