@@ -113,12 +113,38 @@ export async function fetchEvents(
   }
 }
 
+// ── 역지오코딩 (Nominatim, 무료) ──
+async function reverseGeocode(lat: number, lon: number): Promise<string> {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ko&zoom=10`
+    );
+    const data = await res.json();
+    const addr = data?.address;
+    if (!addr) return '';
+
+    // 한국 주소: 시/도 + 구/군
+    const city = addr.city || addr.town || addr.county || '';
+    const district = addr.borough || addr.suburb || addr.quarter || addr.city_district || '';
+
+    if (city && district) return `${city} ${district}`;
+    if (city) return city;
+    return data.display_name?.split(',')[0] || '';
+  } catch {
+    return '';
+  }
+}
+
 // ── 날씨 (OpenWeatherMap + 미세먼지) ──
 export async function fetchWeather(
   lat: number,
   lon: number
 ): Promise<WeatherData | null> {
+  // 위치 정보는 항상 가져오기 (API 키 없어도)
+  const locationPromise = reverseGeocode(lat, lon);
+
   if (!WEATHER_API_KEY) {
+    const locationName = await locationPromise;
     return {
       temp: 18,
       tempMin: 12,
@@ -130,14 +156,15 @@ export async function fetchWeather(
       pm10: 35,
       pm25: 15,
       rainChance: 10,
-      locationName: '서울',
+      locationName: locationName || '서울',
     };
   }
   try {
-    const [weatherRes, airRes, forecastRes] = await Promise.all([
+    const [weatherRes, airRes, forecastRes, locationName] = await Promise.all([
       fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr`),
       fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}`),
       fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr&cnt=4`),
+      locationPromise,
     ]);
 
     const weatherData = await weatherRes.json();
@@ -170,7 +197,7 @@ export async function fetchWeather(
       pm10,
       pm25,
       rainChance,
-      locationName: weatherData.name || '',
+      locationName: locationName || weatherData.name || '',
     };
   } catch {
     return null;
