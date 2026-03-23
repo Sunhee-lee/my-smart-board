@@ -1,6 +1,11 @@
+export type ThemeColor = 'pink' | 'yellow' | 'sky' | 'green' | 'mono';
+
 export interface AcademyItem {
   name: string;
-  time: string;
+  startHour: string;
+  startMin: string;
+  endHour: string;
+  endMin: string;
 }
 
 export interface DaySchedule {
@@ -15,6 +20,7 @@ export interface Settings {
   eduOfficeCode: string;
   grade: string;
   classNum: string;
+  theme: ThemeColor;
   weeklySchedule: Record<string, DaySchedule>;
 }
 
@@ -47,6 +53,7 @@ export const DEFAULT_SETTINGS: Settings = {
   eduOfficeCode: '',
   grade: '1',
   classNum: '1',
+  theme: 'pink',
   weeklySchedule: {
     월: { academies: [], supplies: [] },
     화: { academies: [], supplies: [] },

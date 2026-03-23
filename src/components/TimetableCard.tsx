@@ -2,11 +2,13 @@
 
 import { BookOpen } from 'lucide-react';
 import { TimetableItem } from '@/types';
+import { ThemeConfig } from '@/lib/theme';
 
 interface TimetableCardProps {
   timetable: TimetableItem[];
   loading: boolean;
   hasSchool: boolean;
+  theme: ThemeConfig;
 }
 
 const PERIOD_COLORS = [
@@ -18,18 +20,18 @@ const PERIOD_COLORS = [
   'bg-teal-100 text-teal-600',
 ];
 
-export default function TimetableCard({ timetable, loading, hasSchool }: TimetableCardProps) {
+export default function TimetableCard({ timetable, loading, hasSchool, theme }: TimetableCardProps) {
   return (
-    <div className="card bg-gradient-to-br from-pink-50 to-rose-50">
+    <div className={`card ${theme.card5}`}>
       <div className="flex items-center gap-2 mb-3">
-        <BookOpen className="w-5 h-5 text-pink-400" />
-        <h3 className="card-title text-pink-600">오늘 시간표</h3>
+        <BookOpen className={`w-5 h-5 ${theme.card5Icon}`} />
+        <h3 className={`card-title ${theme.card5Title}`}>오늘 시간표</h3>
       </div>
 
       {loading ? (
         <div className="animate-pulse space-y-2">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-8 bg-pink-100 rounded" />
+            <div key={i} className={`h-8 ${theme.skeleton3} rounded`} />
           ))}
         </div>
       ) : timetable.length > 0 ? (
@@ -46,15 +48,11 @@ export default function TimetableCard({ timetable, loading, hasSchool }: Timetab
         </div>
       ) : !hasSchool ? (
         <div className="flex flex-col items-center gap-2 py-4 text-center">
-          <BookOpen className="w-8 h-8 text-pink-200" />
-          <p className="text-sm text-gray-400">
-            설정에서 학교를 등록해주세요
-          </p>
+          <BookOpen className={`w-8 h-8 ${theme.card5Icon} opacity-30`} />
+          <p className="text-sm text-gray-400">설정에서 학교를 등록해주세요</p>
         </div>
       ) : (
-        <p className="text-sm text-gray-400">
-          오늘은 시간표 정보가 없어요.
-        </p>
+        <p className="text-sm text-gray-400">오늘은 시간표 정보가 없어요.</p>
       )}
     </div>
   );

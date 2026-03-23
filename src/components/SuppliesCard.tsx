@@ -2,12 +2,14 @@
 
 import { Backpack, Check } from 'lucide-react';
 import { useState } from 'react';
+import { ThemeConfig } from '@/lib/theme';
 
 interface SuppliesCardProps {
   supplies: string[];
+  theme: ThemeConfig;
 }
 
-export default function SuppliesCard({ supplies }: SuppliesCardProps) {
+export default function SuppliesCard({ supplies, theme }: SuppliesCardProps) {
   const [checked, setChecked] = useState<Record<number, boolean>>({});
 
   const toggle = (i: number) => {
@@ -15,10 +17,10 @@ export default function SuppliesCard({ supplies }: SuppliesCardProps) {
   };
 
   return (
-    <div className="card bg-gradient-to-br from-amber-50 to-yellow-50">
+    <div className={`card ${theme.card4}`}>
       <div className="flex items-center gap-2 mb-3">
-        <Backpack className="w-5 h-5 text-amber-500" />
-        <h3 className="card-title text-amber-600">오늘 준비물</h3>
+        <Backpack className={`w-5 h-5 ${theme.card4Icon}`} />
+        <h3 className={`card-title ${theme.card4Title}`}>오늘 준비물</h3>
       </div>
 
       {supplies.length > 0 ? (
@@ -37,7 +39,7 @@ export default function SuppliesCard({ supplies }: SuppliesCardProps) {
                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                   checked[i]
                     ? 'bg-green-400 border-green-400'
-                    : 'border-amber-300'
+                    : theme.card4Accent
                 }`}
               >
                 {checked[i] && <Check className="w-3 h-3 text-white" />}
@@ -47,9 +49,7 @@ export default function SuppliesCard({ supplies }: SuppliesCardProps) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-gray-400">
-          오늘은 특별한 준비물이 없어요!
-        </p>
+        <p className="text-sm text-gray-400">오늘은 특별한 준비물이 없어요!</p>
       )}
     </div>
   );

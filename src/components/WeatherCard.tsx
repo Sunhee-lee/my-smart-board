@@ -2,15 +2,17 @@
 
 import { CloudSun, Thermometer, Wind } from 'lucide-react';
 import { WeatherData } from '@/types';
+import { ThemeConfig } from '@/lib/theme';
 
 interface WeatherCardProps {
   weather: WeatherData | null;
   loading: boolean;
+  theme: ThemeConfig;
 }
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
-export default function WeatherCard({ weather, loading }: WeatherCardProps) {
+export default function WeatherCard({ weather, loading, theme }: WeatherCardProps) {
   const now = new Date();
   const dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`;
   const dayStr = `${DAY_NAMES[now.getDay()]}요일`;
@@ -27,10 +29,10 @@ export default function WeatherCard({ weather, loading }: WeatherCardProps) {
   };
 
   return (
-    <div className="card bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className={`card ${theme.card1}`}>
       <div className="flex items-center gap-2 mb-3">
-        <CloudSun className="w-5 h-5 text-blue-400" />
-        <h3 className="card-title text-blue-600">날짜 / 날씨</h3>
+        <CloudSun className={`w-5 h-5 ${theme.card1Icon}`} />
+        <h3 className={`card-title ${theme.card1Title}`}>날짜 / 날씨</h3>
       </div>
 
       <div className="space-y-2">
@@ -39,8 +41,8 @@ export default function WeatherCard({ weather, loading }: WeatherCardProps) {
 
         {loading ? (
           <div className="animate-pulse space-y-2 mt-3">
-            <div className="h-4 bg-blue-100 rounded w-3/4" />
-            <div className="h-4 bg-blue-100 rounded w-1/2" />
+            <div className={`h-4 ${theme.skeleton1} rounded w-3/4`} />
+            <div className={`h-4 ${theme.skeleton1} rounded w-1/2`} />
           </div>
         ) : weather ? (
           <div className="mt-3 space-y-1.5">
@@ -50,9 +52,7 @@ export default function WeatherCard({ weather, loading }: WeatherCardProps) {
                 온도: <strong className="text-orange-500">{weather.temp}°C</strong>
               </span>
             </div>
-            <p className="text-sm text-gray-600 ml-6">
-              {weather.description}
-            </p>
+            <p className="text-sm text-gray-600 ml-6">{weather.description}</p>
             <div className="flex items-center gap-2">
               <Wind className="w-4 h-4 text-teal-400" />
               <span className="text-sm text-gray-700">
