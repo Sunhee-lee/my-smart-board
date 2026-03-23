@@ -23,10 +23,10 @@ export default function ScheduleCard({ weeklySchedule, todayDay, theme, childNam
   const title = '오늘의 스케줄';
 
   return (
-    <div className={`card ${theme.card3}`}>
+    <div className={`card ${theme.card2}`}>
       <div className="flex items-center gap-2 mb-3">
-        <CalendarCheck className={`w-5 h-5 ${theme.card3Icon}`} />
-        <h3 className={`card-title ${theme.card3Title}`}>{title}</h3>
+        <CalendarCheck className={`w-5 h-5 ${theme.card2Icon}`} />
+        <h3 className={`card-title ${theme.card2Title}`}>{title}</h3>
       </div>
 
       {todayAcademies.length > 0 ? (
@@ -37,7 +37,7 @@ export default function ScheduleCard({ weeklySchedule, todayDay, theme, childNam
               key={i}
               className="flex items-center gap-2 bg-white/60 rounded-lg px-3 py-2"
             >
-              <span className={`text-xs px-2 py-0.5 rounded-full ${theme.card3Accent} flex items-center gap-1 whitespace-nowrap`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${theme.card2Accent} flex items-center gap-1 whitespace-nowrap`}>
                 <Clock className="w-3 h-3" />
                 {formatTime(item.startHour, item.startMin)}~{formatTime(item.endHour, item.endMin)}
               </span>

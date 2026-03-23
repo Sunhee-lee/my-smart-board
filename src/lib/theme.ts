@@ -31,6 +31,7 @@ export interface ThemeConfig {
   card5: string;
   card5Icon: string;
   card5Title: string;
+  card5Accent: string;
   card6: string;
   card6Icon: string;
   card6Title: string;
@@ -64,7 +65,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     card2: 'bg-gradient-to-br from-rose-50/80 to-pink-100/70',
     card2Icon: 'text-rose-400',
     card2Title: 'text-rose-600',
-    card2Accent: 'text-rose-300',
+    card2Accent: 'bg-rose-50 text-rose-500',
     // Row2: medium
     card3: 'bg-gradient-to-br from-pink-100/50 to-rose-200/50',
     card3Icon: 'text-fuchsia-500',
@@ -78,6 +79,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     card5: 'bg-gradient-to-br from-pink-100/80 to-rose-200/80',
     card5Icon: 'text-rose-500',
     card5Title: 'text-rose-600',
+    card5Accent: 'text-rose-400',
     card6: 'bg-gradient-to-br from-rose-100/80 to-pink-200/80',
     card6Icon: 'text-purple-500',
     card6Title: 'text-purple-600',
@@ -108,7 +110,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     card2: 'bg-gradient-to-br from-amber-50/80 to-yellow-100/70',
     card2Icon: 'text-orange-400',
     card2Title: 'text-orange-600',
-    card2Accent: 'text-orange-300',
+    card2Accent: 'bg-orange-50 text-orange-500',
     card3: 'bg-gradient-to-br from-amber-100/50 to-yellow-200/50',
     card3Icon: 'text-amber-500',
     card3Title: 'text-amber-600',
@@ -120,6 +122,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     card5: 'bg-gradient-to-br from-amber-100/80 to-yellow-200/80',
     card5Icon: 'text-amber-500',
     card5Title: 'text-amber-600',
+    card5Accent: 'text-amber-400',
     card6: 'bg-gradient-to-br from-orange-100/80 to-amber-200/80',
     card6Icon: 'text-orange-500',
     card6Title: 'text-orange-600',
@@ -150,7 +153,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     card2: 'bg-gradient-to-br from-blue-50/80 to-sky-100/70',
     card2Icon: 'text-blue-400',
     card2Title: 'text-blue-600',
-    card2Accent: 'text-blue-300',
+    card2Accent: 'bg-blue-50 text-blue-500',
     card3: 'bg-gradient-to-br from-sky-100/50 to-blue-200/50',
     card3Icon: 'text-cyan-500',
     card3Title: 'text-cyan-600',
@@ -162,6 +165,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     card5: 'bg-gradient-to-br from-sky-100/80 to-blue-200/80',
     card5Icon: 'text-blue-500',
     card5Title: 'text-blue-600',
+    card5Accent: 'text-blue-400',
     card6: 'bg-gradient-to-br from-blue-100/80 to-indigo-200/80',
     card6Icon: 'text-indigo-500',
     card6Title: 'text-indigo-600',
@@ -192,7 +196,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     card2: 'bg-gradient-to-br from-emerald-50/80 to-green-100/70',
     card2Icon: 'text-emerald-400',
     card2Title: 'text-emerald-600',
-    card2Accent: 'text-emerald-300',
+    card2Accent: 'bg-emerald-50 text-emerald-500',
     card3: 'bg-gradient-to-br from-green-100/50 to-emerald-200/50',
     card3Icon: 'text-teal-500',
     card3Title: 'text-teal-600',
@@ -204,6 +208,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     card5: 'bg-gradient-to-br from-green-100/80 to-emerald-200/80',
     card5Icon: 'text-emerald-500',
     card5Title: 'text-emerald-600',
+    card5Accent: 'text-emerald-400',
     card6: 'bg-gradient-to-br from-emerald-100/80 to-teal-200/80',
     card6Icon: 'text-teal-500',
     card6Title: 'text-teal-600',
@@ -234,7 +239,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     card2: 'bg-gradient-to-br from-slate-50/80 to-gray-100/70',
     card2Icon: 'text-slate-400',
     card2Title: 'text-slate-600',
-    card2Accent: 'text-slate-300',
+    card2Accent: 'bg-slate-100 text-slate-500',
     card3: 'bg-gradient-to-br from-gray-100/50 to-slate-200/50',
     card3Icon: 'text-zinc-500',
     card3Title: 'text-zinc-600',
@@ -246,6 +251,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     card5: 'bg-gradient-to-br from-gray-100/80 to-slate-200/80',
     card5Icon: 'text-slate-500',
     card5Title: 'text-slate-600',
+    card5Accent: 'text-slate-400',
     card6: 'bg-gradient-to-br from-slate-100/80 to-zinc-200/80',
     card6Icon: 'text-zinc-500',
     card6Title: 'text-zinc-600',

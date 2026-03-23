@@ -17,10 +17,10 @@ export default function TimetableCard({ timetable, loading, hasSchool, theme, gr
   const subtitle = hasSchool ? `(${grade}학년 ${classNum}반)` : '';
 
   return (
-    <div className={`card ${theme.card5}`}>
+    <div className={`card ${theme.card1}`}>
       <div className="flex items-center gap-2 mb-3">
-        <BookOpen className={`w-5 h-5 ${theme.card5Icon}`} />
-        <h3 className={`card-title ${theme.card5Title}`}>
+        <BookOpen className={`w-5 h-5 ${theme.card1Icon}`} />
+        <h3 className={`card-title ${theme.card1Title}`}>
           오늘의 시간표{subtitle && <span className="text-xs font-normal ml-1 opacity-70">{subtitle}</span>}
         </h3>
       </div>
@@ -28,7 +28,7 @@ export default function TimetableCard({ timetable, loading, hasSchool, theme, gr
       {loading ? (
         <div className="animate-pulse space-y-2">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className={`h-8 ${theme.skeleton3} rounded`} />
+            <div key={i} className={`h-8 ${theme.skeleton1} rounded`} />
           ))}
         </div>
       ) : timetable.length > 0 ? (
@@ -45,7 +45,7 @@ export default function TimetableCard({ timetable, loading, hasSchool, theme, gr
         </div>
       ) : !hasSchool ? (
         <div className="flex flex-col items-center gap-2 py-4 text-center">
-          <BookOpen className={`w-8 h-8 ${theme.card5Icon} opacity-30`} />
+          <BookOpen className={`w-8 h-8 ${theme.card1Icon} opacity-30`} />
           <p className="text-sm text-gray-400">설정에서 학교를 등록해주세요</p>
         </div>
       ) : (

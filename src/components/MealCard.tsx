@@ -13,23 +13,23 @@ interface MealCardProps {
 
 export default function MealCard({ meal, loading, hasSchool, theme }: MealCardProps) {
   return (
-    <div className={`card ${theme.card2}`}>
+    <div className={`card ${theme.card5}`}>
       <div className="flex items-center gap-2 mb-3">
-        <UtensilsCrossed className={`w-5 h-5 ${theme.card2Icon}`} />
-        <h3 className={`card-title ${theme.card2Title}`}>오늘의 급식</h3>
+        <UtensilsCrossed className={`w-5 h-5 ${theme.card5Icon}`} />
+        <h3 className={`card-title ${theme.card5Title}`}>오늘의 급식</h3>
       </div>
 
       {loading ? (
         <div className="animate-pulse space-y-2">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className={`h-4 ${theme.skeleton2} rounded w-3/4`} />
+            <div key={i} className={`h-4 ${theme.skeleton3} rounded w-3/4`} />
           ))}
         </div>
       ) : meal ? (
         <div className="space-y-1">
           {meal.menu.map((item, i) => (
             <p key={i} className="text-sm text-gray-700 flex items-start gap-1.5">
-              <span className={`${theme.card2Accent} mt-0.5`}>•</span>
+              <span className={`${theme.card5Accent} mt-0.5`}>•</span>
               {item}
             </p>
           ))}
@@ -41,7 +41,7 @@ export default function MealCard({ meal, loading, hasSchool, theme }: MealCardPr
         </div>
       ) : !hasSchool ? (
         <div className="flex flex-col items-center gap-2 py-4 text-center">
-          <UtensilsCrossed className={`w-8 h-8 ${theme.card2Icon} opacity-30`} />
+          <UtensilsCrossed className={`w-8 h-8 ${theme.card5Icon} opacity-30`} />
           <p className="text-sm text-gray-400">설정에서 학교를 등록해주세요</p>
         </div>
       ) : (
