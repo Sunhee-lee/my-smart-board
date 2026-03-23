@@ -10,8 +10,6 @@ interface WeatherCardProps {
   theme: ThemeConfig;
 }
 
-const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
-
 function getWeatherEmoji(icon: string): string {
   if (!icon) return '🌤';
   const code = icon.slice(0, 2);
@@ -101,9 +99,6 @@ function dustBadgeColor(value: number, type: 'pm10' | 'pm25') {
 }
 
 export default function WeatherCard({ weather, loading, theme }: WeatherCardProps) {
-  const now = new Date();
-  const dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${DAY_NAMES[now.getDay()]}요일`;
-
   return (
     <div className={`card ${theme.card1}`}>
       <div className="flex items-center gap-2 mb-3">
@@ -112,7 +107,6 @@ export default function WeatherCard({ weather, loading, theme }: WeatherCardProp
       </div>
 
       <div className="space-y-2">
-        <p className="text-lg font-bold text-gray-800">{dateStr}</p>
 
         {loading ? (
           <div className="animate-pulse space-y-2 mt-3">
