@@ -292,7 +292,7 @@ export async function fetchWeather(
     const [weatherRes, airRes, forecastRes, locationName] = await Promise.all([
       fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr`),
       fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}`),
-      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr&cnt=4`),
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr&cnt=16`),
       locationPromise,
     ]);
 
@@ -311,14 +311,32 @@ export async function fetchWeather(
       5: '위험',
     };
 
-    // 강수확률: forecast의 첫 몇 개 시간대 중 최댓값
-    const pops = (forecastData?.list || []).map((item: { pop?: number }) => Math.round((item.pop ?? 0) * 100));
+    // 오늘 날짜에 해당하는 forecast 항목으로 최고/최저 기온 계산
+    const todayStr = new Date().toISOString().slice(0, 10);
+    interface ForecastEntry {
+      dt_txt: string;
+      main: { temp: number };
+      pop?: number;
+    }
+    const todayForecasts: ForecastEntry[] = (forecastData?.list || []).filter(
+      (item: ForecastEntry) => item.dt_txt?.startsWith(todayStr)
+    );
+
+    // 현재 기온도 포함해서 최고/최저 계산
+    const currentTemp = Math.round(weatherData.main.temp);
+    const forecastTemps = todayForecasts.map((e) => e.main.temp);
+    const allTemps = [currentTemp, ...forecastTemps];
+    const tempMin = Math.round(Math.min(...allTemps));
+    const tempMax = Math.round(Math.max(...allTemps));
+
+    // 강수확률: 오늘 forecast 중 최댓값
+    const pops = todayForecasts.map((item) => Math.round((item.pop ?? 0) * 100));
     const rainChance = pops.length > 0 ? Math.max(...pops) : 0;
 
     return {
-      temp: Math.round(weatherData.main.temp),
-      tempMin: Math.round(weatherData.main.temp_min),
-      tempMax: Math.round(weatherData.main.temp_max),
+      temp: currentTemp,
+      tempMin,
+      tempMax,
       feelsLike: Math.round(weatherData.main.feels_like),
       description: weatherData.weather[0].description,
       icon: weatherData.weather[0].icon,

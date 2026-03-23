@@ -361,9 +361,9 @@ export default function Dashboard() {
         </button>
         <button
           onClick={toggleView}
-          className={`text-xs ${theme.headerIcon} hover:opacity-70 transition-opacity cursor-pointer`}
+          className={`card-title ${theme.headerIcon} hover:opacity-70 transition-opacity cursor-pointer`}
         >
-          {viewTomorrow ? '← 오늘을 볼까요' : '내일을 볼까요 →'}
+          {viewTomorrow ? '← 오늘로 돌아가기' : '내일이 궁금해 →'}
         </button>
       </footer>
 
