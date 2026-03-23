@@ -134,7 +134,7 @@ export default function Dashboard() {
       <header className={`sticky top-0 z-10 ${theme.headerBg} backdrop-blur-md border-b ${theme.headerBorder}`}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className={`font-title text-xl ${theme.headerTitle}`}>
-            {displayName ? `${displayName}의 스마트 보드` : '스마트 보드'}
+            {displayName ? `${displayName}의 스마트 보드` : '나의 스마트 보드'}
           </h1>
           <div className="flex items-center gap-3">
             {clock && (
@@ -175,14 +175,14 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* 방문자 카운터 - 하단 구석 */}
-      <footer className="max-w-6xl mx-auto px-4 py-4 flex justify-end">
+      {/* 하단 */}
+      <footer className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+        <span className="text-[9px] text-gray-300">made by 이츠써니</span>
         <button
           onClick={() => setVisitorStatsOpen(true)}
-          className="opacity-40 hover:opacity-70 transition-opacity text-[10px] text-gray-400 hover:text-gray-600 flex items-center gap-1"
-        >
-          {showCounter ? '📊 방문 기록됨' : '📊 방문 통계'}
-        </button>
+          className="opacity-0 hover:opacity-40 transition-opacity text-[10px] text-gray-400 w-16 h-6"
+          aria-label="방문 통계"
+        />
       </footer>
 
       <VisitorStatsModal
