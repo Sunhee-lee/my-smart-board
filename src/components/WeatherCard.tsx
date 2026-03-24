@@ -47,7 +47,7 @@ function getWeatherIcon(icon: string) {
   }
 }
 
-function getClothingRecommendation(temp: number, icon: string, dust: string): string {
+function getClothingRecommendation(temp: number, icon: string, dust: string, rainChance: number = 0): string {
   const code = icon?.slice(0, 2) || '';
   const isRain = ['09', '10', '11'].includes(code);
   const isSnow = code === '13';
@@ -74,7 +74,7 @@ function getClothingRecommendation(temp: number, icon: string, dust: string): st
     clothing = '너무너무 추워요! 롱패딩을 입고 장갑, 목도리, 모자를 꼭 챙기세요.';
   }
 
-  if (isRain) clothing += ' 우산 필수!';
+  if (isRain || rainChance >= 70) clothing += ' 우산 필수!';
   if (isSnow) clothing += ' 장화랑 우산도 챙겨!';
   if (dust === '나쁨' || dust === '매우나쁨' || dust === '위험') {
     clothing += ' 마스크 꼭 쓰자!';
@@ -169,7 +169,7 @@ export default function WeatherCard({ weather, loading, theme, onRefresh, refres
               <div>
                 <p className="text-[11px] font-bold text-gray-500 mb-0.5">{dayLabel === '내일의' ? '내일은' : '오늘은'} 이렇게 입어봐!</p>
                 <p className="text-xs text-gray-700">
-                  {getClothingRecommendation(weather.temp, weather.icon, weather.dust)}
+                  {getClothingRecommendation(weather.temp, weather.icon, weather.dust, weather.rainChance)}
                 </p>
               </div>
             </div>
