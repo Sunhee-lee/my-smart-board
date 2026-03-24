@@ -136,7 +136,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
   },
   rainbow: {
     name: '레인보우',
-    bg: 'bg-gradient-to-br from-pink-50 via-yellow-50 to-purple-50',
+    bg: 'bg-gradient-to-br from-pink-50 to-purple-50',
     headerBg: 'bg-white/70',
     headerBorder: 'border-purple-100',
     headerTitle: 'text-violet-600',
