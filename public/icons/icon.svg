@@ -2,53 +2,52 @@
   <defs>
     <linearGradient id="bodyBg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#F0F4F8"/>
+      <stop offset="100%" stop-color="#F5FAFE"/>
     </linearGradient>
     <linearGradient id="headerGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#5BC0EB"/>
-      <stop offset="100%" stop-color="#3DA9D9"/>
+      <stop offset="0%" stop-color="#B8E4F0"/>
+      <stop offset="100%" stop-color="#8ED0E0"/>
     </linearGradient>
     <linearGradient id="cellGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#6DCFF6"/>
-      <stop offset="100%" stop-color="#4AB8E8"/>
+      <stop offset="0%" stop-color="#B5E8E0"/>
+      <stop offset="100%" stop-color="#8DD8CC"/>
     </linearGradient>
     <filter id="shadow" x="-6%" y="-4%" width="112%" height="112%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#1A5276" flood-opacity="0.18"/>
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#5A8A9A" flood-opacity="0.15"/>
     </filter>
   </defs>
 
   <!-- Calendar body with outline -->
-  <rect x="56" y="80" width="400" height="376" rx="48" ry="48" fill="#14546B" filter="url(#shadow)"/>
+  <rect x="56" y="80" width="400" height="376" rx="48" ry="48" fill="#5A8FA0" filter="url(#shadow)"/>
   <rect x="64" y="88" width="384" height="360" rx="42" ry="42" fill="url(#bodyBg)"/>
 
   <!-- Header bar -->
-  <rect x="64" y="88" width="384" height="118" fill="#14546B"/>
+  <rect x="64" y="88" width="384" height="118" fill="#5A8FA0"/>
   <rect x="64" y="88" width="384" height="112" rx="42" ry="42" fill="url(#headerGrad)"/>
   <rect x="64" y="148" width="384" height="52" fill="url(#headerGrad)"/>
-  <!-- Bottom edge of header (dark border line) -->
-  <rect x="56" y="196" width="400" height="14" rx="0" fill="#14546B"/>
+  <!-- Bottom edge of header -->
+  <rect x="56" y="196" width="400" height="14" rx="0" fill="#5A8FA0"/>
 
   <!-- Clips/hooks -->
-  <g fill="#14546B">
+  <g fill="#5A8FA0">
     <!-- Left clip -->
     <rect x="156" y="52" width="28" height="72" rx="14" ry="14"/>
-    <!-- Inner color -->
-    <rect x="162" y="58" width="16" height="48" rx="8" ry="8" fill="#5EAAB5"/>
+    <rect x="162" y="58" width="16" height="48" rx="8" ry="8" fill="#9AC0CA"/>
     <!-- Right clip -->
     <rect x="328" y="52" width="28" height="72" rx="14" ry="14"/>
-    <rect x="334" y="58" width="16" height="48" rx="8" ry="8" fill="#5EAAB5"/>
+    <rect x="334" y="58" width="16" height="48" rx="8" ry="8" fill="#9AC0CA"/>
   </g>
 
   <!-- 3x2 grid of date cells -->
   <!-- Row 1 -->
-  <rect x="102" y="240" width="80" height="68" rx="14" ry="14" fill="url(#cellGrad)" stroke="#14546B" stroke-width="5"/>
-  <rect x="216" y="240" width="80" height="68" rx="14" ry="14" fill="url(#cellGrad)" stroke="#14546B" stroke-width="5"/>
-  <rect x="330" y="240" width="80" height="68" rx="14" ry="14" fill="url(#cellGrad)" stroke="#14546B" stroke-width="5"/>
+  <rect x="102" y="240" width="80" height="68" rx="14" ry="14" fill="url(#cellGrad)" stroke="#5A8FA0" stroke-width="4"/>
+  <rect x="216" y="240" width="80" height="68" rx="14" ry="14" fill="url(#cellGrad)" stroke="#5A8FA0" stroke-width="4"/>
+  <rect x="330" y="240" width="80" height="68" rx="14" ry="14" fill="url(#cellGrad)" stroke="#5A8FA0" stroke-width="4"/>
   <!-- Row 2 -->
-  <rect x="102" y="334" width="80" height="68" rx="14" ry="14" fill="url(#cellGrad)" stroke="#14546B" stroke-width="5"/>
-  <rect x="216" y="334" width="80" height="68" rx="14" ry="14" fill="url(#cellGrad)" stroke="#14546B" stroke-width="5"/>
-  <rect x="330" y="334" width="80" height="68" rx="14" ry="14" fill="url(#cellGrad)" stroke="#14546B" stroke-width="5"/>
+  <rect x="102" y="334" width="80" height="68" rx="14" ry="14" fill="url(#cellGrad)" stroke="#5A8FA0" stroke-width="4"/>
+  <rect x="216" y="334" width="80" height="68" rx="14" ry="14" fill="url(#cellGrad)" stroke="#5A8FA0" stroke-width="4"/>
+  <rect x="330" y="334" width="80" height="68" rx="14" ry="14" fill="url(#cellGrad)" stroke="#5A8FA0" stroke-width="4"/>
 
   <!-- Outer border of calendar -->
-  <rect x="56" y="80" width="400" height="376" rx="48" ry="48" fill="none" stroke="#14546B" stroke-width="10"/>
+  <rect x="56" y="80" width="400" height="376" rx="48" ry="48" fill="none" stroke="#5A8FA0" stroke-width="10"/>
 </svg>
