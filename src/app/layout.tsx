@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "나의 스마트 보드",
-  description: "나의 스마트 보드 - 시간표, 급식, 날씨, 준비물을 한눈에!",
+  title: "My스마트보드",
+  description: "My스마트보드 - 시간표, 급식, 날씨, 준비물을 한눈에!",
   icons: {
     icon: [
       { url: "/icons/icon-16x16.png", sizes: "16x16", type: "image/png" },
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   openGraph: {
-    title: "나의 스마트 보드",
+    title: "My스마트보드",
     description: "시간표, 급식, 날씨, 준비물을 한눈에!",
     type: "website",
   },

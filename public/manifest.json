@@ -1,6 +1,6 @@
 {
-  "name": "나의 스마트 보드",
-  "short_name": "스마트보드",
+  "name": "My스마트보드",
+  "short_name": "My스마트보드",
   "description": "시간표, 급식, 날씨, 준비물을 한눈에!",
   "start_url": "/",
   "display": "standalone",
