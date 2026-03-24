@@ -18,16 +18,16 @@ function getWeatherEmoji(icon: string): string {
   const code = icon.slice(0, 2);
   const isNight = icon.endsWith('n');
   switch (code) {
-    case '01': return isNight ? '🌙' : '🌞';
-    case '02': return '🌤';
-    case '03': return '☁';
-    case '04': return '☁';
-    case '09': return '🌧';
-    case '10': return '🌧';
-    case '11': return '🌩';
-    case '13': return '☃';
-    case '50': return '🌁';
-    default: return '🌤';
+    case '01': return isNight ? '🌙' : '☀️';
+    case '02': return '⛅';
+    case '03': return '🌥️';
+    case '04': return '🌥️';
+    case '09': return '🌧️';
+    case '10': return '🌧️';
+    case '11': return '⛈️';
+    case '13': return '🌨️';
+    case '50': return '🌫️';
+    default: return '⛅';
   }
 }
 
