@@ -62,6 +62,11 @@ body {
   box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
 }
 
+/* 레인보우 테마 프리뷰 */
+.rainbow-preview {
+  background: linear-gradient(135deg, #fecdd3, #fdba74, #fde68a, #6ee7b7, #7dd3fc, #c4b5fd);
+}
+
 /* 스크롤바 */
 ::-webkit-scrollbar {
   width: 6px;

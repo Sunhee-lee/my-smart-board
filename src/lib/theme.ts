@@ -176,7 +176,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     skeleton4: 'bg-violet-100',
     tabActive: 'bg-violet-500 text-white',
     tabInactive: 'bg-violet-50 text-violet-400 hover:bg-violet-100',
-    preview: 'bg-gradient-to-br from-pink-200 via-yellow-200 to-purple-200',
+    preview: 'rainbow-preview',
   },
   sky: {
     name: '스카이',
