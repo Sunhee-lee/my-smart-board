@@ -17,6 +17,11 @@ import VisitorStatsModal, { recordUniqueVisit } from './VisitorStatsModal';
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
+// 날씨 데이터가 유효한지 검증 (API 실패로 0값만 들어온 경우 캐시 방지)
+function isValidWeather(data: WeatherData): boolean {
+  return data.temp !== 0 || data.tempMax !== 0 || data.locationName !== '';
+}
+
 function getDisplayName(s: Settings): string {
   if (s.childFirstName?.trim()) return s.childFirstName.trim();
   if (s.childName?.trim()) return s.childName.trim();
@@ -111,7 +116,7 @@ export default function Dashboard() {
       // 좌표 캐싱
       localStorage.setItem(COORD_KEY, JSON.stringify({ lat, lon }));
       const data = await fetchWeather(lat, lon);
-      if (data) {
+      if (data && isValidWeather(data)) {
         localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
       }
       setWeather(data);
@@ -146,7 +151,7 @@ export default function Dashboard() {
     const loadWeather = async (lat: number, lon: number) => {
       localStorage.setItem(COORD_KEY, JSON.stringify({ lat, lon }));
       const data = await fetchWeather(lat, lon);
-      if (data) {
+      if (data && isValidWeather(data)) {
         localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
       }
       setWeather(data);
