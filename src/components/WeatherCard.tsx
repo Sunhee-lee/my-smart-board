@@ -59,13 +59,13 @@ function getClothingRecommendation(temp: number, icon: string, dust: string): st
   } else if (temp >= 23) {
     clothing = '조금 더운 날이에요! 반팔을 입으면 좋아요.';
   } else if (temp >= 20) {
-    clothing = '날씨가 좋아요! 반팔을 입고, 쌀쌀하면 가디건을 챙겨요.';
+    clothing = '날씨가 좋아요! 반팔을 입고, 쌀쌀하면 가디건이나 바람막이를 챙겨요.';
   } else if (temp >= 17) {
-    clothing = '아침저녁은 쌀쌀해요! 긴팔과 가벼운 겉옷을 입어요.';
+    clothing = '아침저녁은 쌀쌀해요! 긴팔과 가벼운 외투을 입어요.';
   } else if (temp >= 12) {
-    clothing = '조금 추워요! 따뜻한 긴팔과 겉옷을 입어요.';
+    clothing = '조금 추워요! 따뜻한 긴팔과 외투을 입어요.';
   } else if (temp >= 9) {
-    clothing = '꽤 추워요! 코트나 따뜻한 옷을 입어요.';
+    clothing = '꽤 추워요! 코트나 얇은 패딩을 입어요.';
   } else if (temp >= 5) {
     clothing = '많이 추워요! 따뜻한 패딩을 입어요.';
   } else if (temp >= 0) {
