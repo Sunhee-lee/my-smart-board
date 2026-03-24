@@ -2,6 +2,7 @@ import { MealData, TimetableItem, SchoolEvent, WeatherData } from '@/types';
 
 const NEIS_API_KEY = process.env.NEXT_PUBLIC_NEIS_API_KEY || '';
 const WEATHER_API_KEY = process.env.NEXT_PUBLIC_WEATHER_API_KEY || '';
+const AIRKOREA_API_KEY = process.env.NEXT_PUBLIC_AIRKOREA_API_KEY || '';
 
 function formatDate(d: Date): string {
   const y = d.getFullYear();
@@ -115,25 +116,44 @@ export async function fetchEvents(
   }
 }
 
+// ── 시도명 매핑 (Nominatim state → 에어코리아 sidoName) ──
+const SIDO_MAP: Record<string, string> = {
+  '서울특별시': '서울', '부산광역시': '부산', '대구광역시': '대구',
+  '인천광역시': '인천', '광주광역시': '광주', '대전광역시': '대전',
+  '울산광역시': '울산', '세종특별자치시': '세종', '경기도': '경기',
+  '강원특별자치도': '강원', '강원도': '강원',
+  '충청북도': '충북', '충청남도': '충남',
+  '전라북도': '전북', '전북특별자치도': '전북', '전라남도': '전남',
+  '경상북도': '경북', '경상남도': '경남', '제주특별자치도': '제주',
+};
+
 // ── 역지오코딩 (Nominatim, 무료) ──
-async function reverseGeocode(lat: number, lon: number): Promise<string> {
+interface GeoResult { displayName: string; sido: string }
+
+async function reverseGeocode(lat: number, lon: number): Promise<GeoResult> {
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ko&zoom=10`
     );
     const data = await res.json();
     const addr = data?.address;
-    if (!addr) return '';
+    if (!addr) return { displayName: '', sido: '' };
 
     // 한국 주소: 시/도 + 구/군
     const city = addr.city || addr.town || addr.county || '';
     const district = addr.borough || addr.suburb || addr.quarter || addr.city_district || '';
+    const state = addr.state || '';
 
-    if (city && district) return `${city} ${district}`;
-    if (city) return city;
-    return data.display_name?.split(',')[0] || '';
+    let displayName = '';
+    if (city && district) displayName = `${city} ${district}`;
+    else if (city) displayName = city;
+    else displayName = data.display_name?.split(',')[0] || '';
+
+    const sido = SIDO_MAP[state] || '';
+
+    return { displayName, sido };
   } catch {
-    return '';
+    return { displayName: '', sido: '' };
   }
 }
 
@@ -311,20 +331,117 @@ function findClosestValue(items: KmaItem[], category: string, targetTime: string
   return closest.fcstValue ?? null;
 }
 
+// ── 에어코리아 미세먼지 ──
+const AIRKOREA_BASE = 'https://apis.data.go.kr/B552584/ArpltnInforInqireSvc';
+
+interface AirQualityData { dust: string; pm10: number; pm25: number }
+const DEFAULT_AIR: AirQualityData = { dust: '보통', pm10: 0, pm25: 0 };
+
+const GRADE_LABEL: Record<string, string> = { '1': '좋음', '2': '보통', '3': '나쁨', '4': '매우나쁨' };
+
+// 오늘 실시간 미세먼지 (시도별 측정)
+async function fetchAirQuality(sido: string): Promise<AirQualityData> {
+  if (!AIRKOREA_API_KEY || !sido) return DEFAULT_AIR;
+  try {
+    const url = `${AIRKOREA_BASE}/getCtprvnRltmMesureDnsty?sidoName=${encodeURIComponent(sido)}&pageNo=1&numOfRows=100&returnType=json&serviceKey=${AIRKOREA_API_KEY}&ver=1.5`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data?.response?.body?.items;
+    if (!items || items.length === 0) return DEFAULT_AIR;
+
+    for (const item of items) {
+      const pm10 = parseInt(item.pm10Value);
+      const pm25 = parseInt(item.pm25Value);
+      if (!isNaN(pm10) && !isNaN(pm25) && pm10 > 0) {
+        const pm10Grade = item.pm10Grade || '2';
+        return { dust: GRADE_LABEL[pm10Grade] || '보통', pm10, pm25 };
+      }
+    }
+    return DEFAULT_AIR;
+  } catch {
+    return DEFAULT_AIR;
+  }
+}
+
+// 내일 미세먼지 예보
+function fcstGradeToNum(grade: string, type: 'pm10' | 'pm25'): number {
+  if (type === 'pm10') {
+    switch (grade) { case '좋음': return 20; case '보통': return 55; case '나쁨': return 115; case '매우나쁨': return 180; default: return 0; }
+  }
+  switch (grade) { case '좋음': return 10; case '보통': return 25; case '나쁨': return 55; case '매우나쁨': return 90; default: return 0; }
+}
+
+function parseFcstGrade(informGrade: string, sido: string): string | null {
+  // "서울 : 보통,경기북부 : 좋음,경기남부 : 좋음,..."
+  const pairs = informGrade.split(',').map(s => s.trim());
+  const gradeOrder = ['좋음', '보통', '나쁨', '매우나쁨'];
+  let worstIdx = -1;
+
+  for (const pair of pairs) {
+    const [region, grade] = pair.split(':').map(s => s.trim());
+    if (!region || !grade) continue;
+    // 정확 매치 또는 접두사 매치 (경기 → 경기북부/경기남부, 강원 → 영동/영서)
+    const isMatch = region === sido || region.startsWith(sido) ||
+      (sido === '강원' && (region === '영동' || region === '영서'));
+    if (isMatch) {
+      const idx = gradeOrder.indexOf(grade);
+      if (idx > worstIdx) worstIdx = idx;
+    }
+  }
+  return worstIdx >= 0 ? gradeOrder[worstIdx] : null;
+}
+
+async function fetchAirQualityForecast(sido: string, tomorrowDateStr: string): Promise<AirQualityData> {
+  if (!AIRKOREA_API_KEY || !sido) return DEFAULT_AIR;
+  try {
+    // searchDate: YYYY-MM-DD (오늘), informData로 내일 필터
+    const kst = getKstNow();
+    const searchDate = `${kst.getUTCFullYear()}-${String(kst.getUTCMonth() + 1).padStart(2, '0')}-${String(kst.getUTCDate()).padStart(2, '0')}`;
+
+    const url = `${AIRKOREA_BASE}/getMinuDustFrcstDspth?searchDate=${searchDate}&returnType=json&serviceKey=${AIRKOREA_API_KEY}&numOfRows=100&pageNo=1`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data?.response?.body?.items;
+    if (!items || items.length === 0) return DEFAULT_AIR;
+
+    let pm10Grade = '보통';
+    let pm25Grade = '보통';
+
+    for (const item of items) {
+      if (item.informData !== tomorrowDateStr || !item.informGrade) continue;
+      const grade = parseFcstGrade(item.informGrade, sido);
+      if (!grade) continue;
+      if (item.informCode === 'PM10') pm10Grade = grade;
+      if (item.informCode === 'PM25') pm25Grade = grade;
+    }
+
+    const gradeOrder = ['좋음', '보통', '나쁨', '매우나쁨'];
+    const worstIdx = Math.max(gradeOrder.indexOf(pm10Grade), gradeOrder.indexOf(pm25Grade));
+
+    return {
+      dust: gradeOrder[worstIdx >= 0 ? worstIdx : 1],
+      pm10: fcstGradeToNum(pm10Grade, 'pm10'),
+      pm25: fcstGradeToNum(pm25Grade, 'pm25'),
+    };
+  } catch {
+    return DEFAULT_AIR;
+  }
+}
+
 // ── 내일 날씨 (기상청 단기예보) ──
 export async function fetchTomorrowWeather(
   lat: number,
   lon: number
 ): Promise<WeatherData | null> {
-  const locationPromise = reverseGeocode(lat, lon);
+  const geoPromise = reverseGeocode(lat, lon);
 
   if (!WEATHER_API_KEY) {
-    const locationName = await locationPromise;
+    const geo = await geoPromise;
+    const air = await fetchAirQualityForecast(geo.sido, '');
     return {
       temp: 17, tempMin: 11, tempMax: 21, feelsLike: 15,
-      description: '맑음', icon: '01d', dust: '보통',
-      pm10: 0, pm25: 0, rainChance: 5,
-      locationName: locationName || '서울',
+      description: '맑음', icon: '01d', ...air, rainChance: 5,
+      locationName: geo.displayName || '서울',
     };
   }
 
@@ -336,12 +453,15 @@ export async function fetchTomorrowWeather(
     const kstTomorrow = new Date(kst);
     kstTomorrow.setUTCDate(kstTomorrow.getUTCDate() + 1);
     const tomorrowStr = kstDateStr(kstTomorrow);
+    const tomorrowDash = `${tomorrowStr.slice(0, 4)}-${tomorrowStr.slice(4, 6)}-${tomorrowStr.slice(6, 8)}`;
     const currentTimeStr = String(kst.getUTCHours()).padStart(2, '0') + '00';
 
-    const [fcstRes, locationName] = await Promise.all([
+    const [fcstRes, geo] = await Promise.all([
       fetch(`${KMA_BASE}/getVilageFcst?pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
-      locationPromise,
+      geoPromise,
     ]);
+
+    const airPromise = fetchAirQualityForecast(geo.sido, tomorrowDash);
 
     const allItems = parseKmaItems(await fcstRes.json());
     const tomorrowItems = allItems.filter((i) => i.fcstDate === tomorrowStr);
@@ -381,6 +501,8 @@ export async function fetchTomorrowWeather(
 
     const isNight = kst.getUTCHours() >= 18 || kst.getUTCHours() < 6;
 
+    const air = await airPromise;
+
     return {
       temp: Math.round(repTemp),
       tempMin,
@@ -388,11 +510,9 @@ export async function fetchTomorrowWeather(
       feelsLike: calcFeelsLike(repTemp, wsd, reh),
       description: kmaToDescription(sky, pty),
       icon: kmaToIcon(sky, pty, isNight),
-      dust: '보통',
-      pm10: 0,
-      pm25: 0,
+      ...air,
       rainChance,
-      locationName: locationName || '',
+      locationName: geo.displayName || '',
     };
   } catch {
     return null;
@@ -404,15 +524,15 @@ export async function fetchWeather(
   lat: number,
   lon: number
 ): Promise<WeatherData | null> {
-  const locationPromise = reverseGeocode(lat, lon);
+  const geoPromise = reverseGeocode(lat, lon);
 
   if (!WEATHER_API_KEY) {
-    const locationName = await locationPromise;
+    const geo = await geoPromise;
+    const air = await fetchAirQuality(geo.sido);
     return {
       temp: 18, tempMin: 12, tempMax: 22, feelsLike: 16,
-      description: '맑음', icon: '01d', dust: '보통',
-      pm10: 0, pm25: 0, rainChance: 10,
-      locationName: locationName || '서울',
+      description: '맑음', icon: '01d', ...air, rainChance: 10,
+      locationName: geo.displayName || '서울',
     };
   }
 
@@ -423,11 +543,13 @@ export async function fetchWeather(
     const fcstBase = getVilageFcstBase(kst);
     const todayStr = kstDateStr(kst);
 
-    const [ncstRes, fcstRes, locationName] = await Promise.all([
+    const [ncstRes, fcstRes, geo] = await Promise.all([
       fetch(`${KMA_BASE}/getUltraSrtNcst?pageNo=1&numOfRows=10&dataType=JSON&base_date=${ncstBase.baseDate}&base_time=${ncstBase.baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
       fetch(`${KMA_BASE}/getVilageFcst?pageNo=1&numOfRows=1000&dataType=JSON&base_date=${fcstBase.baseDate}&base_time=${fcstBase.baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
-      locationPromise,
+      geoPromise,
     ]);
+
+    const airPromise = fetchAirQuality(geo.sido);
 
     // 초단기실황: 현재 기온, 습도, 풍속, 강수형태
     const ncstItems = parseKmaItems(await ncstRes.json());
@@ -471,6 +593,8 @@ export async function fetchWeather(
 
     const isNight = kst.getUTCHours() >= 18 || kst.getUTCHours() < 6;
 
+    const air = await airPromise;
+
     return {
       temp: Math.round(currentTemp),
       tempMin,
@@ -478,11 +602,9 @@ export async function fetchWeather(
       feelsLike: calcFeelsLike(currentTemp, currentWsd, currentReh),
       description: kmaToDescription(sky, currentPty),
       icon: kmaToIcon(sky, currentPty, isNight),
-      dust: '보통',
-      pm10: 0,
-      pm25: 0,
+      ...air,
       rainChance,
-      locationName: locationName || '',
+      locationName: geo.displayName || '',
     };
   } catch {
     return null;
