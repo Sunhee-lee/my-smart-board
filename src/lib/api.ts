@@ -137,7 +137,181 @@ async function reverseGeocode(lat: number, lon: number): Promise<string> {
   }
 }
 
-// ── 내일 날씨 (forecast API, 현재 시각 기준) ──
+// ── 기상청 API Hub 공통 유틸 ──
+
+const KMA_BASE = 'https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0';
+
+// 위경도 → 기상청 격자 좌표 변환 (Lambert Conformal Conic)
+function latLonToGrid(lat: number, lon: number): { nx: number; ny: number } {
+  const DEGRAD = Math.PI / 180.0;
+  const re = 6371.00877 / 5.0;
+  const slat1 = 30.0 * DEGRAD;
+  const slat2 = 60.0 * DEGRAD;
+  const olon = 126.0 * DEGRAD;
+  const olat = 38.0 * DEGRAD;
+
+  let sn = Math.tan(Math.PI * 0.25 + slat2 * 0.5) / Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+  sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn);
+  let sf = Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+  sf = (Math.pow(sf, sn) * Math.cos(slat1)) / sn;
+  let ro = Math.tan(Math.PI * 0.25 + olat * 0.5);
+  ro = (re * sf) / Math.pow(ro, sn);
+
+  let ra = Math.tan(Math.PI * 0.25 + lat * DEGRAD * 0.5);
+  ra = (re * sf) / Math.pow(ra, sn);
+  let theta = lon * DEGRAD - olon;
+  if (theta > Math.PI) theta -= 2.0 * Math.PI;
+  if (theta < -Math.PI) theta += 2.0 * Math.PI;
+  theta *= sn;
+
+  return {
+    nx: Math.floor(ra * Math.sin(theta) + 43 + 0.5),
+    ny: Math.floor(ro - ra * Math.cos(theta) + 136 + 0.5),
+  };
+}
+
+// KST 현재 시각
+function getKstNow(): Date {
+  return new Date(Date.now() + 9 * 60 * 60 * 1000);
+}
+
+// KST Date → YYYYMMDD
+function kstDateStr(d: Date): string {
+  return d.toISOString().slice(0, 10).replace(/-/g, '');
+}
+
+// 단기예보 base_time 계산 (발표시각: 02,05,08,11,14,17,20,23시)
+function getVilageFcstBase(kst: Date): { baseDate: string; baseTime: string } {
+  const baseTimes = [2, 5, 8, 11, 14, 17, 20, 23];
+  let h = kst.getUTCHours();
+  const m = kst.getUTCMinutes();
+  if (m < 10) h -= 1; // 발표 후 ~10분 지연
+
+  let baseHour = 23;
+  let usePrevDay = h < baseTimes[0];
+
+  if (!usePrevDay) {
+    for (const bt of baseTimes) {
+      if (h >= bt) baseHour = bt;
+    }
+  }
+
+  const baseDate = new Date(kst);
+  if (usePrevDay) {
+    baseDate.setUTCDate(baseDate.getUTCDate() - 1);
+    baseHour = 23;
+  }
+
+  return {
+    baseDate: kstDateStr(baseDate),
+    baseTime: String(baseHour).padStart(2, '0') + '00',
+  };
+}
+
+// 초단기실황 base_time 계산 (매시 정각 발표, ~40분 후 제공)
+function getUltraSrtNcstBase(kst: Date): { baseDate: string; baseTime: string } {
+  let h = kst.getUTCHours();
+  const m = kst.getUTCMinutes();
+  if (m < 40) h -= 1;
+
+  const baseDate = new Date(kst);
+  if (h < 0) {
+    h = 23;
+    baseDate.setUTCDate(baseDate.getUTCDate() - 1);
+  }
+
+  return {
+    baseDate: kstDateStr(baseDate),
+    baseTime: String(h).padStart(2, '0') + '00',
+  };
+}
+
+// 기상청 SKY+PTY → OpenWeatherMap 호환 icon 코드
+function kmaToIcon(sky: number, pty: number, isNight: boolean): string {
+  const s = isNight ? 'n' : 'd';
+  if (pty > 0) {
+    switch (pty) {
+      case 1: return `10${s}`; // 비
+      case 2: case 3: return `13${s}`; // 비/눈, 눈
+      case 4: return `09${s}`; // 소나기
+      default: return `10${s}`;
+    }
+  }
+  switch (sky) {
+    case 1: return `01${s}`; // 맑음
+    case 3: return `02${s}`; // 구름많음
+    case 4: return `04${s}`; // 흐림
+    default: return `02${s}`;
+  }
+}
+
+// 기상청 SKY+PTY → 날씨 설명
+function kmaToDescription(sky: number, pty: number): string {
+  if (pty > 0) {
+    switch (pty) {
+      case 1: return '비';
+      case 2: return '비/눈';
+      case 3: return '눈';
+      case 4: return '소나기';
+      default: return '비';
+    }
+  }
+  switch (sky) {
+    case 1: return '맑음';
+    case 3: return '구름많음';
+    case 4: return '흐림';
+    default: return '맑음';
+  }
+}
+
+// 체감온도 계산
+function calcFeelsLike(temp: number, windSpeed: number, humidity: number): number {
+  if (temp <= 10 && windSpeed >= 1.3) {
+    const v = windSpeed * 3.6; // m/s → km/h
+    return Math.round(13.12 + 0.6215 * temp - 11.37 * Math.pow(v, 0.16) + 0.3965 * Math.pow(v, 0.16) * temp);
+  }
+  if (temp >= 27) {
+    const e = (humidity / 100) * 6.105 * Math.exp((17.27 * temp) / (237.7 + temp));
+    return Math.round(temp + 0.33 * e - 4.0);
+  }
+  return Math.round(temp);
+}
+
+// 기상청 API 응답에서 items 추출
+interface KmaItem {
+  baseDate: string;
+  baseTime: string;
+  category: string;
+  fcstDate?: string;
+  fcstTime?: string;
+  fcstValue?: string;
+  obsrValue?: string;
+  nx: number;
+  ny: number;
+}
+
+function parseKmaItems(data: unknown): KmaItem[] {
+  const d = data as { response?: { body?: { items?: { item?: KmaItem[] } } } };
+  return d?.response?.body?.items?.item || [];
+}
+
+// 특정 날짜의 forecast 항목에서 현재 시각에 가장 가까운 값 찾기
+function findClosestValue(items: KmaItem[], category: string, targetTime: string): string | null {
+  const filtered = items.filter((i) => i.category === category);
+  if (filtered.length === 0) return null;
+  let closest = filtered[0];
+  let minDiff = Infinity;
+  for (const item of filtered) {
+    const diff = Math.abs(parseInt(item.fcstTime || '0') - parseInt(targetTime));
+    if (diff < minDiff) {
+      minDiff = diff;
+      closest = item;
+    }
+  }
+  return closest.fcstValue ?? null;
+}
+
+// ── 내일 날씨 (기상청 단기예보) ──
 export async function fetchTomorrowWeather(
   lat: number,
   lon: number
@@ -147,119 +321,76 @@ export async function fetchTomorrowWeather(
   if (!WEATHER_API_KEY) {
     const locationName = await locationPromise;
     return {
-      temp: 17,
-      tempMin: 11,
-      tempMax: 21,
-      feelsLike: 15,
-      description: '맑음',
-      icon: '01d',
-      dust: '보통',
-      pm10: 30,
-      pm25: 12,
-      rainChance: 5,
+      temp: 17, tempMin: 11, tempMax: 21, feelsLike: 15,
+      description: '맑음', icon: '01d', dust: '보통',
+      pm10: 0, pm25: 0, rainChance: 5,
       locationName: locationName || '서울',
     };
   }
 
   try {
-    // forecast: 5일치 3시간 간격
-    const [forecastRes, airForecastRes, locationName] = await Promise.all([
-      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr`),
-      fetch(`https://api.openweathermap.org/data/2.5/air_pollution/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}`),
+    const { nx, ny } = latLonToGrid(lat, lon);
+    const kst = getKstNow();
+    const { baseDate, baseTime } = getVilageFcstBase(kst);
+
+    const kstTomorrow = new Date(kst);
+    kstTomorrow.setUTCDate(kstTomorrow.getUTCDate() + 1);
+    const tomorrowStr = kstDateStr(kstTomorrow);
+    const currentTimeStr = String(kst.getUTCHours()).padStart(2, '0') + '00';
+
+    const [fcstRes, locationName] = await Promise.all([
+      fetch(`${KMA_BASE}/getVilageFcst?pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
       locationPromise,
     ]);
 
-    const forecastData = await forecastRes.json();
-    const airForecastData = await airForecastRes.json();
+    const allItems = parseKmaItems(await fcstRes.json());
+    const tomorrowItems = allItems.filter((i) => i.fcstDate === tomorrowStr);
 
-    const now = new Date();
-    const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-    const kstTomorrow = new Date(kstNow);
-    kstTomorrow.setDate(kstTomorrow.getDate() + 1);
-    const tomorrowDateStr = kstTomorrow.toISOString().slice(0, 10); // YYYY-MM-DD (KST)
-    const currentHour = kstNow.getUTCHours();
+    if (tomorrowItems.length === 0) return null;
 
-    // 내일 날짜에 해당하는 forecast 항목들 필터 (KST 기준)
-    interface ForecastItem {
-      dt: number;
-      dt_txt: string;
-      main: { temp: number; temp_min: number; temp_max: number; feels_like: number };
-      weather: { description: string; icon: string }[];
-      pop?: number;
-    }
-    const tomorrowEntries: ForecastItem[] = (forecastData?.list || []).filter(
-      (item: ForecastItem) => {
-        const itemKst = new Date(item.dt * 1000 + 9 * 60 * 60 * 1000);
-        return itemKst.toISOString().slice(0, 10) === tomorrowDateStr;
-      }
-    );
+    // 기온: TMP 전체 + TMN/TMX
+    const temps = tomorrowItems
+      .filter((i) => i.category === 'TMP')
+      .map((i) => parseFloat(i.fcstValue || '0'));
+    const tmn = allItems.find((i) => i.category === 'TMN' && i.fcstDate === tomorrowStr);
+    const tmx = allItems.find((i) => i.category === 'TMX' && i.fcstDate === tomorrowStr);
+    const allTemps = [...temps];
+    if (tmn) allTemps.push(parseFloat(tmn.fcstValue || '0'));
+    if (tmx) allTemps.push(parseFloat(tmx.fcstValue || '0'));
 
-    if (tomorrowEntries.length === 0) return null;
+    if (allTemps.length === 0) return null;
 
-    // 현재 시각과 가장 가까운 항목 선택
-    let closest = tomorrowEntries[0];
-    let minDiff = Infinity;
-    for (const entry of tomorrowEntries) {
-      const entryHour = new Date(entry.dt * 1000).getHours();
-      const diff = Math.abs(entryHour - currentHour);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closest = entry;
-      }
-    }
+    const tempMin = Math.round(Math.min(...allTemps));
+    const tempMax = Math.round(Math.max(...allTemps));
 
-    // 내일 전체의 최고/최저 기온
-    const temps = tomorrowEntries.map((e) => e.main.temp);
-    const tempMin = Math.round(Math.min(...temps));
-    const tempMax = Math.round(Math.max(...temps));
+    // 대표 기온 (현재 시각에 가장 가까운)
+    const repTempStr = findClosestValue(tomorrowItems, 'TMP', currentTimeStr);
+    const repTemp = repTempStr ? parseFloat(repTempStr) : allTemps[0];
 
-    // 내일 전체의 강수확률 최댓값
-    const pops = tomorrowEntries.map((e) => Math.round((e.pop ?? 0) * 100));
-    const rainChance = Math.max(...pops);
+    // SKY, PTY, WSD, REH
+    const sky = parseInt(findClosestValue(tomorrowItems, 'SKY', currentTimeStr) || '1');
+    const pty = parseInt(findClosestValue(tomorrowItems, 'PTY', currentTimeStr) || '0');
+    const wsd = parseFloat(findClosestValue(tomorrowItems, 'WSD', currentTimeStr) || '0');
+    const reh = parseFloat(findClosestValue(tomorrowItems, 'REH', currentTimeStr) || '50');
 
-    // 내일의 미세먼지: 현재 시각에 가장 가까운 항목
-    interface AirItem {
-      dt: number;
-      main: { aqi: number };
-      components: { pm10: number; pm2_5: number };
-    }
-    const tomorrowAirEntries: AirItem[] = (airForecastData?.list || []).filter(
-      (item: AirItem) => {
-        const itemDate = new Date(item.dt * 1000).toISOString().slice(0, 10);
-        return itemDate === tomorrowDateStr;
-      }
-    );
+    // 강수확률 최댓값
+    const pops = tomorrowItems
+      .filter((i) => i.category === 'POP')
+      .map((i) => parseInt(i.fcstValue || '0'));
+    const rainChance = pops.length > 0 ? Math.max(...pops) : 0;
 
-    let airClosest = tomorrowAirEntries[0];
-    if (tomorrowAirEntries.length > 0) {
-      let airMinDiff = Infinity;
-      for (const entry of tomorrowAirEntries) {
-        const entryHour = new Date(entry.dt * 1000).getHours();
-        const diff = Math.abs(entryHour - currentHour);
-        if (diff < airMinDiff) {
-          airMinDiff = diff;
-          airClosest = entry;
-        }
-      }
-    }
-
-    const aqi = airClosest?.main?.aqi ?? 2;
-    const pm10 = Math.round(airClosest?.components?.pm10 ?? 0);
-    const pm25 = Math.round(airClosest?.components?.pm2_5 ?? 0);
-    const dustLabels: Record<number, string> = {
-      1: '좋음', 2: '보통', 3: '나쁨', 4: '매우나쁨', 5: '위험',
-    };
+    const isNight = kst.getUTCHours() >= 18 || kst.getUTCHours() < 6;
 
     return {
-      temp: Math.round(closest.main.temp),
+      temp: Math.round(repTemp),
       tempMin,
       tempMax,
-      feelsLike: Math.round(closest.main.feels_like),
-      description: closest.weather[0].description,
-      icon: closest.weather[0].icon,
-      dust: dustLabels[aqi] || '보통',
-      pm10,
-      pm25,
+      feelsLike: calcFeelsLike(repTemp, wsd, reh),
+      description: kmaToDescription(sky, pty),
+      icon: kmaToIcon(sky, pty, isNight),
+      dust: '보통',
+      pm10: 0,
+      pm25: 0,
       rainChance,
       locationName: locationName || '',
     };
@@ -268,95 +399,90 @@ export async function fetchTomorrowWeather(
   }
 }
 
-// ── 날씨 (OpenWeatherMap + 미세먼지) ──
+// ── 오늘 날씨 (기상청 초단기실황 + 단기예보) ──
 export async function fetchWeather(
   lat: number,
   lon: number
 ): Promise<WeatherData | null> {
-  // 위치 정보는 항상 가져오기 (API 키 없어도)
   const locationPromise = reverseGeocode(lat, lon);
 
   if (!WEATHER_API_KEY) {
     const locationName = await locationPromise;
     return {
-      temp: 18,
-      tempMin: 12,
-      tempMax: 22,
-      feelsLike: 16,
-      description: '맑음',
-      icon: '01d',
-      dust: '보통',
-      pm10: 35,
-      pm25: 15,
-      rainChance: 10,
+      temp: 18, tempMin: 12, tempMax: 22, feelsLike: 16,
+      description: '맑음', icon: '01d', dust: '보통',
+      pm10: 0, pm25: 0, rainChance: 10,
       locationName: locationName || '서울',
     };
   }
+
   try {
-    const [weatherRes, airRes, forecastRes, locationName] = await Promise.all([
-      fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr`),
-      fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}`),
-      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr`),
+    const { nx, ny } = latLonToGrid(lat, lon);
+    const kst = getKstNow();
+    const ncstBase = getUltraSrtNcstBase(kst);
+    const fcstBase = getVilageFcstBase(kst);
+    const todayStr = kstDateStr(kst);
+
+    const [ncstRes, fcstRes, locationName] = await Promise.all([
+      fetch(`${KMA_BASE}/getUltraSrtNcst?pageNo=1&numOfRows=10&dataType=JSON&base_date=${ncstBase.baseDate}&base_time=${ncstBase.baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
+      fetch(`${KMA_BASE}/getVilageFcst?pageNo=1&numOfRows=1000&dataType=JSON&base_date=${fcstBase.baseDate}&base_time=${fcstBase.baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
       locationPromise,
     ]);
 
-    const weatherData = await weatherRes.json();
-    const airData = await airRes.json();
-    const forecastData = await forecastRes.json();
-
-    const aqi = airData?.list?.[0]?.main?.aqi ?? 2;
-    const pm10 = Math.round(airData?.list?.[0]?.components?.pm10 ?? 0);
-    const pm25 = Math.round(airData?.list?.[0]?.components?.pm2_5 ?? 0);
-    const dustLabels: Record<number, string> = {
-      1: '좋음',
-      2: '보통',
-      3: '나쁨',
-      4: '매우나쁨',
-      5: '위험',
-    };
-
-    // 한국 시간(KST) 기준 오늘 날짜
-    const now = new Date();
-    const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-    const todayStr = kstNow.toISOString().slice(0, 10);
-
-    // 오늘 날짜에 해당하는 forecast 항목으로 최고/최저 기온 계산
-    interface ForecastEntry {
-      dt: number;
-      dt_txt: string;
-      main: { temp: number };
-      pop?: number;
-    }
-    const todayForecasts: ForecastEntry[] = (forecastData?.list || []).filter(
-      (item: ForecastEntry) => {
-        const itemKst = new Date(item.dt * 1000 + 9 * 60 * 60 * 1000);
-        return itemKst.toISOString().slice(0, 10) === todayStr;
+    // 초단기실황: 현재 기온, 습도, 풍속, 강수형태
+    const ncstItems = parseKmaItems(await ncstRes.json());
+    let currentTemp = 0, currentPty = 0, currentReh = 50, currentWsd = 0;
+    for (const item of ncstItems) {
+      const v = item.obsrValue || '0';
+      switch (item.category) {
+        case 'T1H': currentTemp = parseFloat(v); break;
+        case 'PTY': currentPty = parseInt(v); break;
+        case 'REH': currentReh = parseFloat(v); break;
+        case 'WSD': currentWsd = parseFloat(v); break;
       }
-    );
+    }
 
-    // 현재 기온도 포함해서 최고/최저 계산
-    const currentTemp = Math.round(weatherData.main.temp);
-    const forecastTemps = todayForecasts.map((e) => e.main.temp);
-    const allTemps = [currentTemp, ...forecastTemps];
+    // 단기예보: 오늘 기온 전체
+    const allItems = parseKmaItems(await fcstRes.json());
+    const todayItems = allItems.filter((i) => i.fcstDate === todayStr);
+
+    const temps = todayItems
+      .filter((i) => i.category === 'TMP')
+      .map((i) => parseFloat(i.fcstValue || '0'));
+    const tmn = allItems.find((i) => i.category === 'TMN' && i.fcstDate === todayStr);
+    const tmx = allItems.find((i) => i.category === 'TMX' && i.fcstDate === todayStr);
+
+    const allTemps = [currentTemp, ...temps];
+    if (tmn) allTemps.push(parseFloat(tmn.fcstValue || '0'));
+    if (tmx) allTemps.push(parseFloat(tmx.fcstValue || '0'));
+
     const tempMin = Math.round(Math.min(...allTemps));
     const tempMax = Math.round(Math.max(...allTemps));
 
-    // 강수확률: 오늘 forecast 중 최댓값
-    const pops = todayForecasts.map((item) => Math.round((item.pop ?? 0) * 100));
+    // 강수확률 최댓값
+    const pops = todayItems
+      .filter((i) => i.category === 'POP')
+      .map((i) => parseInt(i.fcstValue || '0'));
     const rainChance = pops.length > 0 ? Math.max(...pops) : 0;
 
+    // 현재 시각 가장 가까운 SKY
+    const currentTimeStr = String(kst.getUTCHours()).padStart(2, '0') + '00';
+    const sky = parseInt(findClosestValue(todayItems, 'SKY', currentTimeStr) || '1');
+
+    const isNight = kst.getUTCHours() >= 18 || kst.getUTCHours() < 6;
+
     return {
-      temp: currentTemp,
+      temp: Math.round(currentTemp),
       tempMin,
       tempMax,
-      feelsLike: Math.round(weatherData.main.feels_like),
-      description: weatherData.weather[0].description,
-      icon: weatherData.weather[0].icon,
-      dust: dustLabels[aqi] || '보통',
-      pm10,
-      pm25,
+      feelsLike: calcFeelsLike(currentTemp, currentWsd, currentReh),
+      description: kmaToDescription(sky, currentPty),
+      icon: kmaToIcon(sky, currentPty, isNight),
+      dust: '보통',
+      pm10: 0,
+      pm25: 0,
       rainChance,
-      locationName: locationName || weatherData.name || '',
+      locationName: locationName || '',
     };
   } catch {
     return null;
