@@ -67,6 +67,19 @@ body {
   background: linear-gradient(135deg, #fecdd3, #fdba74, #fde68a, #6ee7b7, #7dd3fc, #c4b5fd);
 }
 
+/* 레인보우 텍스트 */
+.rainbow-text {
+  color: #8b5cf6;
+  background: linear-gradient(90deg, #f43f5e, #f97316, #eab308, #10b981, #0ea5e9, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.rainbow-text svg {
+  -webkit-text-fill-color: #8b5cf6;
+}
+
 /* 스크롤바 */
 ::-webkit-scrollbar {
   width: 6px;
