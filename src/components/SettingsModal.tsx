@@ -157,7 +157,7 @@ export default function SettingsModal({
                     }`}
                   >
                     <div className={`w-full h-6 rounded-lg mb-1.5 ${THEMES[t].preview}`} />
-                    <p className="text-[11px] font-medium text-gray-600">{THEMES[t].name}</p>
+                    <p className="text-[9px] font-medium text-gray-600">{THEMES[t].name}</p>
                   </button>
                 ))}
               </div>
