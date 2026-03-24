@@ -20,6 +20,14 @@ export const metadata: Metadata = {
     title: "My스마트보드",
     description: "시간표, 급식, 날씨, 준비물을 한눈에!",
     type: "website",
+    images: [
+      {
+        url: "/icons/icon-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "My스마트보드",
+      },
+    ],
   },
 };
 
@@ -31,6 +39,7 @@ export default function RootLayout({
   return (
     <html lang="ko" className="h-full antialiased">
       <head>
+        <meta property="og:image" content="/icons/icon-512x512.png" />
         <link
           rel="stylesheet"
           as="style"
