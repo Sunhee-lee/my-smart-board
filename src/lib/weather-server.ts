@@ -39,7 +39,8 @@ async function reverseGeocode(lat: number, lon: number): Promise<GeoResult> {
     else if (city) displayName = city;
     else displayName = data.display_name?.split(',')[0] || '';
 
-    return { displayName, sido: SIDO_MAP[state] || '' };
+    const sido = SIDO_MAP[state] || SIDO_MAP[city] || '';
+    return { displayName, sido };
   } catch {
     return { displayName: '', sido: '' };
   }
