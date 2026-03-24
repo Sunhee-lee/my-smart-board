@@ -356,12 +356,12 @@ export default function Dashboard() {
           onClick={toggleView}
           className={`card-title ${theme.headerIcon} hover:opacity-70 transition-opacity cursor-pointer`}
         >
-          {viewTomorrow ? '← 오늘로 돌아가기' : '내일이 궁금해 →'}
+          {viewTomorrow ? '< 오늘로 돌아가기' : '내일이 궁금해 >'}
         </button>
       </div>
 
       {/* 하단 크레딧 */}
-      <footer className="max-w-6xl mx-auto px-4 pb-2">
+      <footer className="max-w-6xl mx-auto px-4 pb-2 flex justify-center">
         <button
           onClick={() => setVisitorStatsOpen(true)}
           className="text-[9px] text-gray-200/50 hover:text-gray-300 transition-colors cursor-pointer"
