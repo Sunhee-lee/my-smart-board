@@ -119,6 +119,7 @@ export default function WeatherCard({ weather, loading, theme, onRefresh, refres
 
         {loading ? (
           <div className="animate-pulse space-y-2 mt-3">
+            <p className="text-sm text-gray-400">날씨를 가져오고 있습니다.</p>
             <div className={`h-4 ${theme.skeleton1} rounded w-3/4`} />
             <div className={`h-4 ${theme.skeleton1} rounded w-1/2`} />
           </div>
