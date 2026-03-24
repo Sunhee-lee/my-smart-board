@@ -514,7 +514,8 @@ export async function fetchTomorrowWeather(
       rainChance,
       locationName: geo.displayName || '',
     };
-  } catch {
+  } catch (e) {
+    console.error('[fetchTomorrowWeather] error:', e);
     return null;
   }
 }
@@ -606,7 +607,8 @@ export async function fetchWeather(
       rainChance,
       locationName: geo.displayName || '',
     };
-  } catch {
+  } catch (e) {
+    console.error('[fetchWeather] error:', e);
     return null;
   }
 }
