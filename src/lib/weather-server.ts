@@ -320,7 +320,7 @@ export async function fetchWeatherServer(lat: number, lon: number): Promise<Weat
 
     const [ncstRes, fcstRes, geo] = await Promise.all([
       fetch(`${KMA_BASE}/getUltraSrtNcst?pageNo=1&numOfRows=10&dataType=JSON&base_date=${ncstBase.baseDate}&base_time=${ncstBase.baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
-      fetch(`${KMA_BASE}/getVilageFcst?pageNo=1&numOfRows=1000&dataType=JSON&base_date=${fcstBase.baseDate}&base_time=${fcstBase.baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
+      fetch(`${KMA_BASE}/getVilageFcst?pageNo=1&numOfRows=2000&dataType=JSON&base_date=${fcstBase.baseDate}&base_time=${fcstBase.baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
       geoPromise,
     ]);
 
@@ -407,7 +407,7 @@ export async function fetchTomorrowWeatherServer(lat: number, lon: number): Prom
     const currentTimeStr = String(kst.getUTCHours()).padStart(2, '0') + '00';
 
     const [fcstRes, geo] = await Promise.all([
-      fetch(`${KMA_BASE}/getVilageFcst?pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
+      fetch(`${KMA_BASE}/getVilageFcst?pageNo=1&numOfRows=2000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
       geoPromise,
     ]);
 
@@ -420,8 +420,50 @@ export async function fetchTomorrowWeatherServer(lat: number, lon: number): Prom
 
     console.log('[tomorrow] allItems:', allItems.length, 'tomorrowItems:', tomorrowItems.length);
     if (tomorrowItems.length === 0) {
-      console.error('[tomorrow] No data for tomorrow. fcstRes status:', fcstRes.status, 'sample:', JSON.stringify(fcstJson).slice(0, 300));
-      return null;
+      console.log('[tomorrow] No data with current baseTime, retrying with 2300 base');
+      // baseTime이 이른 시간이면 내일 데이터가 없을 수 있으므로 2300 base로 재시도
+      const retryBaseDate = new Date(kst);
+      retryBaseDate.setUTCDate(retryBaseDate.getUTCDate() - 1);
+      const retryDate = kstDateStr(retryBaseDate);
+      const retryRes = await fetch(`${KMA_BASE}/getVilageFcst?pageNo=1&numOfRows=2000&dataType=JSON&base_date=${retryDate}&base_time=2300&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`);
+      const retryJson = await retryRes.json();
+      const retryAllItems = parseKmaItems(retryJson);
+      const retryTomorrowItems = retryAllItems.filter((i) => i.fcstDate === tomorrowStr);
+      console.log('[tomorrow] retry allItems:', retryAllItems.length, 'tomorrowItems:', retryTomorrowItems.length);
+      if (retryTomorrowItems.length === 0) {
+        console.error('[tomorrow] Still no data for tomorrow after retry');
+        return null;
+      }
+      // 재시도 성공 시 아래 로직에서 사용하도록 대체
+      Object.assign(allItems, retryAllItems);
+      // tomorrowItems를 재할당할 수 없으므로 아래에서 retryTomorrowItems 사용
+      const temps2 = retryTomorrowItems.filter((i) => i.category === 'TMP').map((i) => parseFloat(i.fcstValue || '0'));
+      const tmn2 = retryAllItems.find((i) => i.category === 'TMN' && i.fcstDate === tomorrowStr);
+      const tmx2 = retryAllItems.find((i) => i.category === 'TMX' && i.fcstDate === tomorrowStr);
+      const allTemps2 = [...temps2];
+      if (tmn2) allTemps2.push(parseFloat(tmn2.fcstValue || '0'));
+      if (tmx2) allTemps2.push(parseFloat(tmx2.fcstValue || '0'));
+      if (allTemps2.length === 0) return null;
+      const repTempStr2 = findClosestValue(retryTomorrowItems, 'TMP', currentTimeStr);
+      const repTemp2 = repTempStr2 ? parseFloat(repTempStr2) : allTemps2[0];
+      const sky2 = parseInt(findClosestValue(retryTomorrowItems, 'SKY', currentTimeStr) || '1');
+      const pty2 = parseInt(findClosestValue(retryTomorrowItems, 'PTY', currentTimeStr) || '0');
+      const wsd2 = parseFloat(findClosestValue(retryTomorrowItems, 'WSD', currentTimeStr) || '0');
+      const reh2 = parseFloat(findClosestValue(retryTomorrowItems, 'REH', currentTimeStr) || '50');
+      const pops2 = retryTomorrowItems.filter((i) => i.category === 'POP').map((i) => parseInt(i.fcstValue || '0'));
+      const isNight2 = kst.getUTCHours() >= 18 || kst.getUTCHours() < 6;
+      const air = await airPromise;
+      return {
+        temp: Math.round(repTemp2),
+        tempMin: Math.round(Math.min(...allTemps2)),
+        tempMax: Math.round(Math.max(...allTemps2)),
+        feelsLike: calcFeelsLike(repTemp2, wsd2, reh2),
+        description: kmaToDescription(sky2, pty2),
+        icon: kmaToIcon(sky2, pty2, isNight2),
+        ...air,
+        rainChance: pops2.length > 0 ? Math.max(...pops2) : 0,
+        locationName: geo.displayName || '',
+      };
     }
 
     const temps = tomorrowItems.filter((i) => i.category === 'TMP').map((i) => parseFloat(i.fcstValue || '0'));
@@ -499,7 +541,7 @@ export async function fetchAllWeatherServer(lat: number, lon: number): Promise<{
     // 1) KMA 실황 + 예보 + 역지오코딩 병렬
     const [ncstRes, fcstRes, geo] = await Promise.all([
       fetch(`${KMA_BASE}/getUltraSrtNcst?pageNo=1&numOfRows=10&dataType=JSON&base_date=${ncstBase.baseDate}&base_time=${ncstBase.baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
-      fetch(`${KMA_BASE}/getVilageFcst?pageNo=1&numOfRows=1000&dataType=JSON&base_date=${fcstBase.baseDate}&base_time=${fcstBase.baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
+      fetch(`${KMA_BASE}/getVilageFcst?pageNo=1&numOfRows=2000&dataType=JSON&base_date=${fcstBase.baseDate}&base_time=${fcstBase.baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
       geoPromise,
     ]);
 
@@ -586,6 +628,12 @@ export async function fetchAllWeatherServer(lat: number, lon: number): Promise<{
           locationName: geo.displayName || '',
         };
       }
+    }
+
+    // 내일 데이터가 없으면 별도 API 호출로 재시도
+    if (!tomorrowData) {
+      console.log('[fetchAllWeatherServer] tomorrow data missing from combined call, trying separate fetch');
+      tomorrowData = await fetchTomorrowWeatherServer(lat, lon);
     }
 
     return { today: todayData, tomorrow: tomorrowData };
