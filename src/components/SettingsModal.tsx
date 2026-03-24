@@ -145,12 +145,12 @@ export default function SettingsModal({
               <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-1.5">
                 <Palette className="w-4 h-4" /> 테마 색상
               </h3>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {THEME_OPTIONS.map((t) => (
                   <button
                     key={t}
                     onClick={() => setForm({ ...form, theme: t })}
-                    className={`flex-1 rounded-xl p-3 text-center transition-all border-2 bg-white ${
+                    className={`rounded-xl p-3 text-center transition-all border-2 bg-white ${
                       form.theme === t
                         ? 'border-gray-400 shadow-sm scale-105'
                         : 'border-transparent hover:border-gray-200'
