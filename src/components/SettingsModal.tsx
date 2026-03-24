@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Search, School, Loader2, GraduationCap, Palette, RotateCcw, Check } from 'lucide-react';
+import { X, Plus, Trash2, Search, School, Loader2, GraduationCap, Palette, RotateCcw } from 'lucide-react';
 import { Settings, DEFAULT_SETTINGS, ThemeColor, DaySchedule } from '@/types';
 import { saveSettings } from '@/lib/storage';
 import { searchSchool } from '@/lib/api';
@@ -34,7 +34,7 @@ export default function SettingsModal({
   const [searching, setSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [academyModalOpen, setAcademyModalOpen] = useState(false);
-  const [themeApplied, setThemeApplied] = useState(false);
+
 
   useEffect(() => {
     setForm(settings);
@@ -79,8 +79,7 @@ export default function SettingsModal({
     const updated = { ...settings, theme: form.theme };
     saveSettings(updated);
     onSave(updated);
-    setThemeApplied(true);
-    setTimeout(() => setThemeApplied(false), 1500);
+    onClose();
   };
 
   const handleAcademySave = (schedule: Record<string, DaySchedule>) => {
@@ -165,13 +164,7 @@ export default function SettingsModal({
                 onClick={handleThemeApply}
                 className={`w-full py-2.5 ${currentTheme.primary} text-white rounded-xl text-sm font-semibold ${currentTheme.primaryHover} transition-colors flex items-center justify-center gap-1.5`}
               >
-                {themeApplied ? (
-                  <>
-                    <Check className="w-4 h-4" /> 적용 완료!
-                  </>
-                ) : (
-                  '테마 적용'
-                )}
+테마 적용
               </button>
             </div>
 
