@@ -1,4 +1,4 @@
-export type ThemeColor = 'pink' | 'yellow' | 'blue' | 'green' | 'mono';
+export type ThemeColor = 'pink' | 'yellow' | 'sky' | 'green' | 'mono';
 
 export interface AcademyItem {
   name: string;
@@ -64,7 +64,7 @@ export const DEFAULT_SETTINGS: Settings = {
   eduOfficeCode: '',
   grade: '1',
   classNum: '1',
-  theme: 'blue',
+  theme: 'sky',
   weeklySchedule: {
     월: { academies: [], supplies: [] },
     화: { academies: [], supplies: [] },

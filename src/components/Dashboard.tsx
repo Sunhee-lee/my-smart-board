@@ -261,7 +261,7 @@ export default function Dashboard() {
     setLoading({ weather: false, meal: true, timetable: true, events: true });
   };
 
-  const theme = THEMES[settings?.theme || 'blue'];
+  const theme = THEMES[settings?.theme || 'sky'];
 
   if (!settings) {
     return (

@@ -134,7 +134,7 @@ export const THEMES: Record<ThemeColor, ThemeConfig> = {
     tabInactive: 'bg-amber-50 text-amber-400 hover:bg-amber-100',
     preview: 'bg-gradient-to-br from-yellow-200 to-amber-300',
   },
-  blue: {
+  sky: {
     name: '블루 Blue',
     bg: 'bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50',
     headerBg: 'bg-white/70',
