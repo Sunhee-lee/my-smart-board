@@ -4,6 +4,16 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "나의 스마트 보드",
   description: "나의 스마트 보드 - 시간표, 급식, 날씨, 준비물을 한눈에!",
+  icons: {
+    icon: [
+      { url: "/icons/icon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/icon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   openGraph: {
     title: "나의 스마트 보드",
     description: "시간표, 급식, 날씨, 준비물을 한눈에!",
