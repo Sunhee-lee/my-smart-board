@@ -55,23 +55,23 @@ function getClothingRecommendation(temp: number, icon: string, dust: string): st
   let clothing = '';
 
   if (temp >= 28) {
-    clothing = '오늘은 많이 더워요! 반팔과 반바지가 좋아요.';
+    clothing = '오늘은 많이 더워요! 반팔과 반바지를 입어요.';
   } else if (temp >= 23) {
-    clothing = '조금 더운 날이에요! 반팔을 입으면 좋겠어.';
+    clothing = '조금 더운 날이에요! 반팔을 입으면 좋아요.';
   } else if (temp >= 20) {
-    clothing = '날씨가 좋아요! 반팔을 입고, 쌀쌀하면 가디건이나 바람막이를 챙기자.';
+    clothing = '날씨가 좋아요! 반팔을 입고, 쌀쌀하면 가디건이나 바람막이를 챙기세요.';
   } else if (temp >= 17) {
-    clothing = '아침저녁은 쌀쌀해요! 긴팔과 가벼운 외투를 입으면 좋겠어.';
+    clothing = '아침저녁은 쌀쌀해요! 긴팔과 가벼운 외투를 입어요.';
   } else if (temp >= 12) {
-    clothing = '조금 추워요! 따뜻한 긴팔과 외투를 입으면 좋겠어.';
+    clothing = '조금 추워요! 따뜻한 긴팔과 외투를 입어요.';
   } else if (temp >= 9) {
-    clothing = '꽤 추워요! 코트나 얇은 패딩을 입으면 좋겠어.';
+    clothing = '꽤 추워요! 코트나 얇은 패딩을 입으면 좋아요.';
   } else if (temp >= 5) {
-    clothing = '많이 추워요! 따뜻한 패딩을 입으면 좋겠어.';
+    clothing = '많이 추워요! 따뜻한 패딩을 챙기세요.';
   } else if (temp >= 0) {
-    clothing = '정말 추워요! 패딩을 입고 장갑과 목도리를 챙기자.';
+    clothing = '정말 추워요! 패딩을 입고 장갑과 목도리를 챙기세요.';
   } else {
-    clothing = '너무너무 추워요! 롱패딩을 입고 장갑, 목도리, 모자를 챙기자.';
+    clothing = '너무너무 추워요! 롱패딩을 입고 장갑, 목도리, 모자를 꼭 챙기세요.';
   }
 
   if (isRain) clothing += ' 우산 필수!';
