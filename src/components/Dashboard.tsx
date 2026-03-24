@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { Settings, WeatherData, MealData, TimetableItem, SchoolEvent } from '@/types';
 import { loadSettings } from '@/lib/storage';
-import { fetchWeather, fetchTomorrowWeather, fetchMeal, fetchTimetable, fetchEvents } from '@/lib/api';
+import { fetchAllWeather, fetchWeather, fetchMeal, fetchTimetable, fetchEvents } from '@/lib/api';
 import { THEMES } from '@/lib/theme';
 import WeatherCard from './WeatherCard';
 import MealCard from './MealCard';
@@ -115,11 +115,13 @@ export default function Dashboard() {
     const loadWeather = async (lat: number, lon: number) => {
       // 좌표 캐싱
       localStorage.setItem(COORD_KEY, JSON.stringify({ lat, lon }));
-      const data = await fetchWeather(lat, lon);
-      if (data && isValidWeather(data)) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+      // 오늘+내일 날씨를 한 번에 가져오기 (API 호출 절반으로 감소)
+      const { today, tomorrow } = await fetchAllWeather(lat, lon);
+      if (today && isValidWeather(today)) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: today, timestamp: Date.now() }));
       }
-      setWeather(data);
+      setWeather(today);
+      setTomorrowWeather(tomorrow);
       setLoading((prev) => ({ ...prev, weather: false }));
     };
 
@@ -150,11 +152,12 @@ export default function Dashboard() {
 
     const loadWeather = async (lat: number, lon: number) => {
       localStorage.setItem(COORD_KEY, JSON.stringify({ lat, lon }));
-      const data = await fetchWeather(lat, lon);
-      if (data && isValidWeather(data)) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+      const { today, tomorrow } = await fetchAllWeather(lat, lon);
+      if (today && isValidWeather(today)) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: today, timestamp: Date.now() }));
       }
-      setWeather(data);
+      setWeather(today);
+      setTomorrowWeather(tomorrow);
       setRefreshingWeather(false);
     };
 
@@ -205,56 +208,29 @@ export default function Dashboard() {
   const fetchTomorrowData = useCallback(async (s: Settings) => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    setTomorrowLoading({ weather: true, meal: !s.schoolCode, timetable: !s.schoolCode });
 
-    // 날씨는 학교 설정 없이도 가져오기 (GPS 좌표 기반)
-    const COORD_KEY = 'smart-board-geo-cache';
-    const weatherPromise = (async () => {
-      try {
-        const geoCache = localStorage.getItem(COORD_KEY);
-        if (geoCache) {
-          const { lat, lon } = JSON.parse(geoCache);
-          return fetchTomorrowWeather(lat, lon);
-        }
-      } catch { /* 무시 */ }
-      return new Promise<WeatherData | null>((resolve) => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => resolve(fetchTomorrowWeather(pos.coords.latitude, pos.coords.longitude)),
-            () => resolve(fetchTomorrowWeather(37.5665, 126.978))
-          );
-        } else {
-          resolve(null);
-        }
-      });
-    })();
-
+    // 내일 날씨는 이미 로딩 시 함께 가져옴 — 급식/시간표만 가져오기
     if (s.schoolCode) {
-      setTomorrowLoading({ weather: true, meal: true, timetable: true });
-      const [weatherData, mealData, ttData] = await Promise.all([
-        weatherPromise,
+      setTomorrowLoading({ weather: false, meal: true, timetable: true });
+      const [mealData, ttData] = await Promise.all([
         fetchMeal(s.eduOfficeCode, s.schoolCode, tomorrow),
         fetchTimetable(s.eduOfficeCode, s.schoolCode, s.grade, s.classNum, tomorrow),
       ]);
-      setTomorrowWeather(weatherData);
       setTomorrowMeal(mealData);
       setTomorrowTimetable(ttData);
-    } else {
-      const weatherData = await weatherPromise;
-      setTomorrowWeather(weatherData);
     }
     setTomorrowLoading({ weather: false, meal: false, timetable: false });
   }, []);
 
   const toggleView = useCallback(() => {
     if (!viewTomorrow && settings) {
-      // 내일 데이터가 없으면 가져오기
-      if (!tomorrowWeather && !tomorrowLoading.weather) {
+      // 내일 급식/시간표가 없으면 가져오기 (날씨는 이미 로드됨)
+      if (!tomorrowMeal && !tomorrowLoading.meal) {
         fetchTomorrowData(settings);
       }
     }
     setViewTomorrow((prev) => !prev);
-  }, [viewTomorrow, settings, tomorrowWeather, tomorrowLoading, fetchTomorrowData]);
+  }, [viewTomorrow, settings, tomorrowMeal, tomorrowLoading, fetchTomorrowData]);
 
   const handleSaveSettings = (newSettings: Settings) => {
     setSettings(newSettings);

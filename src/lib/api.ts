@@ -141,3 +141,17 @@ export async function fetchTomorrowWeather(
     return null;
   }
 }
+
+// ── 오늘+내일 날씨 통합 (1회 호출) ──
+export async function fetchAllWeather(
+  lat: number,
+  lon: number
+): Promise<{ today: WeatherData | null; tomorrow: WeatherData | null }> {
+  try {
+    const res = await fetch(`/api/weather/all?lat=${lat}&lon=${lon}`);
+    if (!res.ok) return { today: null, tomorrow: null };
+    return await res.json();
+  } catch {
+    return { today: null, tomorrow: null };
+  }
+}

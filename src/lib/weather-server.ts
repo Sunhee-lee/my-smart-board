@@ -17,10 +17,19 @@ const SIDO_MAP: Record<string, string> = {
   '경상북도': '경북', '경상남도': '경남', '제주특별자치도': '제주',
 };
 
-// ── 역지오코딩 ──
+// ── 역지오코딩 (인메모리 캐시) ──
 interface GeoResult { displayName: string; sido: string }
 
+const geoCache = new Map<string, { result: GeoResult; timestamp: number }>();
+const GEO_CACHE_TTL = 60 * 60 * 1000; // 1시간
+
 async function reverseGeocode(lat: number, lon: number): Promise<GeoResult> {
+  const key = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+  const cached = geoCache.get(key);
+  if (cached && Date.now() - cached.timestamp < GEO_CACHE_TTL) {
+    return cached.result;
+  }
+
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ko&zoom=10`,
@@ -40,7 +49,9 @@ async function reverseGeocode(lat: number, lon: number): Promise<GeoResult> {
     else displayName = data.display_name?.split(',')[0] || '';
 
     const sido = SIDO_MAP[state] || SIDO_MAP[city] || '';
-    return { displayName, sido };
+    const result = { displayName, sido };
+    geoCache.set(key, { result, timestamp: Date.now() });
+    return result;
   } catch {
     return { displayName: '', sido: '' };
   }
@@ -452,5 +463,134 @@ export async function fetchTomorrowWeatherServer(lat: number, lon: number): Prom
   } catch (e) {
     console.error('[fetchTomorrowWeatherServer] error:', e);
     return null;
+  }
+}
+
+// ── 오늘+내일 날씨 통합 (서버사이드) ──
+// KMA 예보 1회 호출로 오늘/내일 데이터 모두 추출, 에어코리아도 병렬 처리
+export async function fetchAllWeatherServer(lat: number, lon: number): Promise<{ today: WeatherData | null; tomorrow: WeatherData | null }> {
+  const geoPromise = reverseGeocode(lat, lon);
+
+  if (!WEATHER_API_KEY) {
+    const geo = await geoPromise;
+    const [air, airFcst] = await Promise.all([
+      fetchAirQuality(geo.sido),
+      fetchAirQualityForecast(geo.sido, ''),
+    ]);
+    const base = { temp: 18, tempMin: 12, tempMax: 22, feelsLike: 16, description: '맑음', icon: '01d', locationName: geo.displayName || '서울' };
+    return {
+      today: { ...base, ...air, rainChance: 10 },
+      tomorrow: { ...base, temp: 17, tempMin: 11, tempMax: 21, feelsLike: 15, ...airFcst, rainChance: 5 },
+    };
+  }
+
+  try {
+    const { nx, ny } = latLonToGrid(lat, lon);
+    const kst = getKstNow();
+    const ncstBase = getUltraSrtNcstBase(kst);
+    const fcstBase = getVilageFcstBase(kst);
+    const todayStr = kstDateStr(kst);
+
+    const kstTomorrow = new Date(kst);
+    kstTomorrow.setUTCDate(kstTomorrow.getUTCDate() + 1);
+    const tomorrowStr = kstDateStr(kstTomorrow);
+    const tomorrowDash = `${tomorrowStr.slice(0, 4)}-${tomorrowStr.slice(4, 6)}-${tomorrowStr.slice(6, 8)}`;
+
+    // 1) KMA 실황 + 예보 + 역지오코딩 병렬
+    const [ncstRes, fcstRes, geo] = await Promise.all([
+      fetch(`${KMA_BASE}/getUltraSrtNcst?pageNo=1&numOfRows=10&dataType=JSON&base_date=${ncstBase.baseDate}&base_time=${ncstBase.baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
+      fetch(`${KMA_BASE}/getVilageFcst?pageNo=1&numOfRows=1000&dataType=JSON&base_date=${fcstBase.baseDate}&base_time=${fcstBase.baseTime}&nx=${nx}&ny=${ny}&authKey=${WEATHER_API_KEY}`),
+      geoPromise,
+    ]);
+
+    // 2) 에어코리아 오늘+내일 병렬 (geo 완료 후 바로)
+    const [air, airFcst, ncstJson, fcstJson] = await Promise.all([
+      fetchAirQuality(geo.sido),
+      fetchAirQualityForecast(geo.sido, tomorrowDash),
+      ncstRes.json(),
+      fcstRes.json(),
+    ]);
+
+    // 실황 파싱
+    const ncstItems = parseKmaItems(ncstJson);
+    let currentTemp = 0, currentPty = 0, currentReh = 50, currentWsd = 0;
+    for (const item of ncstItems) {
+      const v = item.obsrValue || '0';
+      switch (item.category) {
+        case 'T1H': currentTemp = parseFloat(v); break;
+        case 'PTY': currentPty = parseInt(v); break;
+        case 'REH': currentReh = parseFloat(v); break;
+        case 'WSD': currentWsd = parseFloat(v); break;
+      }
+    }
+
+    // 예보 파싱 (오늘+내일 공유)
+    const allItems = parseKmaItems(fcstJson);
+    const currentTimeStr = String(kst.getUTCHours()).padStart(2, '0') + '00';
+    const isNight = kst.getUTCHours() >= 18 || kst.getUTCHours() < 6;
+
+    // ── 오늘 ──
+    const todayItems = allItems.filter((i) => i.fcstDate === todayStr);
+    const todayTemps = todayItems.filter((i) => i.category === 'TMP').map((i) => parseFloat(i.fcstValue || '0'));
+    const tmn = allItems.find((i) => i.category === 'TMN' && i.fcstDate === todayStr);
+    const tmx = allItems.find((i) => i.category === 'TMX' && i.fcstDate === todayStr);
+    const allTodayTemps = [currentTemp, ...todayTemps];
+    if (tmn) allTodayTemps.push(parseFloat(tmn.fcstValue || '0'));
+    if (tmx) allTodayTemps.push(parseFloat(tmx.fcstValue || '0'));
+
+    const todayPops = todayItems.filter((i) => i.category === 'POP').map((i) => parseInt(i.fcstValue || '0'));
+    const sky = parseInt(findClosestValue(todayItems, 'SKY', currentTimeStr) || '1');
+
+    const todayData: WeatherData = {
+      temp: Math.round(currentTemp),
+      tempMin: Math.round(Math.min(...allTodayTemps)),
+      tempMax: Math.round(Math.max(...allTodayTemps)),
+      feelsLike: calcFeelsLike(currentTemp, currentWsd, currentReh),
+      description: kmaToDescription(sky, currentPty),
+      icon: kmaToIcon(sky, currentPty, isNight),
+      ...air,
+      rainChance: todayPops.length > 0 ? Math.max(...todayPops) : 0,
+      locationName: geo.displayName || '',
+    };
+
+    // ── 내일 ──
+    const tomorrowItems = allItems.filter((i) => i.fcstDate === tomorrowStr);
+    let tomorrowData: WeatherData | null = null;
+
+    if (tomorrowItems.length > 0) {
+      const tmrTemps = tomorrowItems.filter((i) => i.category === 'TMP').map((i) => parseFloat(i.fcstValue || '0'));
+      const tmrTmn = allItems.find((i) => i.category === 'TMN' && i.fcstDate === tomorrowStr);
+      const tmrTmx = allItems.find((i) => i.category === 'TMX' && i.fcstDate === tomorrowStr);
+      const allTmrTemps = [...tmrTemps];
+      if (tmrTmn) allTmrTemps.push(parseFloat(tmrTmn.fcstValue || '0'));
+      if (tmrTmx) allTmrTemps.push(parseFloat(tmrTmx.fcstValue || '0'));
+
+      if (allTmrTemps.length > 0) {
+        const repTempStr = findClosestValue(tomorrowItems, 'TMP', currentTimeStr);
+        const repTemp = repTempStr ? parseFloat(repTempStr) : allTmrTemps[0];
+        const tmrSky = parseInt(findClosestValue(tomorrowItems, 'SKY', currentTimeStr) || '1');
+        const tmrPty = parseInt(findClosestValue(tomorrowItems, 'PTY', currentTimeStr) || '0');
+        const tmrWsd = parseFloat(findClosestValue(tomorrowItems, 'WSD', currentTimeStr) || '0');
+        const tmrReh = parseFloat(findClosestValue(tomorrowItems, 'REH', currentTimeStr) || '50');
+        const tmrPops = tomorrowItems.filter((i) => i.category === 'POP').map((i) => parseInt(i.fcstValue || '0'));
+
+        tomorrowData = {
+          temp: Math.round(repTemp),
+          tempMin: Math.round(Math.min(...allTmrTemps)),
+          tempMax: Math.round(Math.max(...allTmrTemps)),
+          feelsLike: calcFeelsLike(repTemp, tmrWsd, tmrReh),
+          description: kmaToDescription(tmrSky, tmrPty),
+          icon: kmaToIcon(tmrSky, tmrPty, isNight),
+          ...airFcst,
+          rainChance: tmrPops.length > 0 ? Math.max(...tmrPops) : 0,
+          locationName: geo.displayName || '',
+        };
+      }
+    }
+
+    return { today: todayData, tomorrow: tomorrowData };
+  } catch (e) {
+    console.error('[fetchAllWeatherServer] error:', e);
+    return { today: null, tomorrow: null };
   }
 }
