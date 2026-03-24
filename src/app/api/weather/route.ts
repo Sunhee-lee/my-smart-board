@@ -6,9 +6,13 @@ export async function GET(req: NextRequest) {
   const lat = parseFloat(searchParams.get('lat') || '37.5665');
   const lon = parseFloat(searchParams.get('lon') || '126.978');
 
-  const data = await fetchWeatherServer(lat, lon);
-  if (!data) {
-    return NextResponse.json({ error: 'Failed to fetch weather' }, { status: 500 });
+  try {
+    const data = await fetchWeatherServer(lat, lon);
+    if (!data) {
+      return NextResponse.json({ error: 'Weather data returned null', lat, lon }, { status: 500 });
+    }
+    return NextResponse.json(data);
+  } catch (e) {
+    return NextResponse.json({ error: String(e), lat, lon }, { status: 500 });
   }
-  return NextResponse.json(data);
 }

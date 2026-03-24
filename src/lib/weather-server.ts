@@ -314,7 +314,12 @@ export async function fetchWeatherServer(lat: number, lon: number): Promise<Weat
 
     const airPromise = fetchAirQuality(geo.sido);
 
-    const ncstItems = parseKmaItems(await ncstRes.json());
+    console.log('[today] KMA ncst status:', ncstRes.status, 'fcst status:', fcstRes.status);
+    const ncstJson = await ncstRes.json();
+    const ncstItems = parseKmaItems(ncstJson);
+    if (ncstItems.length === 0) {
+      console.error('[today] No ncst items. Response:', JSON.stringify(ncstJson).slice(0, 300));
+    }
     let currentTemp = 0, currentPty = 0, currentReh = 50, currentWsd = 0;
     for (const item of ncstItems) {
       const v = item.obsrValue || '0';
@@ -396,10 +401,16 @@ export async function fetchTomorrowWeatherServer(lat: number, lon: number): Prom
 
     const airPromise = fetchAirQualityForecast(geo.sido, tomorrowDash);
 
-    const allItems = parseKmaItems(await fcstRes.json());
+    const fcstJson = await fcstRes.json();
+    console.log('[tomorrow] KMA status:', fcstRes.status, 'baseDate:', baseDate, 'baseTime:', baseTime, 'tomorrowStr:', tomorrowStr);
+    const allItems = parseKmaItems(fcstJson);
     const tomorrowItems = allItems.filter((i) => i.fcstDate === tomorrowStr);
 
-    if (tomorrowItems.length === 0) return null;
+    console.log('[tomorrow] allItems:', allItems.length, 'tomorrowItems:', tomorrowItems.length);
+    if (tomorrowItems.length === 0) {
+      console.error('[tomorrow] No data for tomorrow. fcstRes status:', fcstRes.status, 'sample:', JSON.stringify(fcstJson).slice(0, 300));
+      return null;
+    }
 
     const temps = tomorrowItems.filter((i) => i.category === 'TMP').map((i) => parseFloat(i.fcstValue || '0'));
     const tmn = allItems.find((i) => i.category === 'TMN' && i.fcstDate === tomorrowStr);
