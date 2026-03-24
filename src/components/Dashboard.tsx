@@ -259,7 +259,7 @@ export default function Dashboard() {
   if (!settings) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${theme.bg}`}>
-        <div className="animate-pulse text-gray-400 text-lg">로딩 중...</div>
+        <div className="animate-pulse text-gray-400 text-lg font-title">로딩 중...</div>
       </div>
     );
   }
