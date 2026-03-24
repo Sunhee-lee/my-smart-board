@@ -75,9 +75,9 @@ function getClothingRecommendation(temp: number, icon: string, dust: string, rai
   }
 
   if (isRain || rainChance >= 70) clothing += ' 우산 필수!';
-  if (isSnow) clothing += ' 눈은 방수 신발을 신어!';
+  if (isSnow) clothing += ' 눈이오니 방수 신발을 신어!';
   if (dust === '나쁨' || dust === '매우나쁨' || dust === '위험') {
-    clothing += ' 마스크 꼭 쓰자!';
+    clothing += ' 마스크는 꼭쓰자!';
   }
 
   return clothing;
