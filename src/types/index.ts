@@ -1,4 +1,4 @@
-export type ThemeColor = 'pink' | 'yellow' | 'sky' | 'green' | 'mono';
+export type ThemeColor = 'pink' | 'yellow' | 'rainbow' | 'sky' | 'green' | 'mono';
 
 export interface AcademyItem {
   name: string;

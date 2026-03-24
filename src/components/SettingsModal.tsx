@@ -17,7 +17,7 @@ interface SettingsModalProps {
 }
 
 const DAYS = ['월', '화', '수', '목', '금'] as const;
-const THEME_OPTIONS: ThemeColor[] = ['pink', 'yellow', 'sky', 'green', 'mono'];
+const THEME_OPTIONS: ThemeColor[] = ['pink', 'yellow', 'rainbow', 'sky', 'green', 'mono'];
 
 export default function SettingsModal({
   isOpen,
