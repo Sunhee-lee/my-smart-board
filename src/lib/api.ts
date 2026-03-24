@@ -162,9 +162,9 @@ export async function fetchTomorrowWeather(
   }
 
   try {
-    // forecast: 5일치 3시간 간격 (cnt=16 → ~48시간)
+    // forecast: 5일치 3시간 간격
     const [forecastRes, airForecastRes, locationName] = await Promise.all([
-      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr&cnt=16`),
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr`),
       fetch(`https://api.openweathermap.org/data/2.5/air_pollution/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}`),
       locationPromise,
     ]);
@@ -173,12 +173,13 @@ export async function fetchTomorrowWeather(
     const airForecastData = await airForecastRes.json();
 
     const now = new Date();
-    const tomorrowDate = new Date(now);
-    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-    const tomorrowDateStr = tomorrowDate.toISOString().slice(0, 10); // YYYY-MM-DD
-    const currentHour = now.getHours();
+    const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const kstTomorrow = new Date(kstNow);
+    kstTomorrow.setDate(kstTomorrow.getDate() + 1);
+    const tomorrowDateStr = kstTomorrow.toISOString().slice(0, 10); // YYYY-MM-DD (KST)
+    const currentHour = kstNow.getUTCHours();
 
-    // 내일 날짜에 해당하는 forecast 항목들 필터
+    // 내일 날짜에 해당하는 forecast 항목들 필터 (KST 기준)
     interface ForecastItem {
       dt: number;
       dt_txt: string;
@@ -187,7 +188,10 @@ export async function fetchTomorrowWeather(
       pop?: number;
     }
     const tomorrowEntries: ForecastItem[] = (forecastData?.list || []).filter(
-      (item: ForecastItem) => item.dt_txt?.startsWith(tomorrowDateStr)
+      (item: ForecastItem) => {
+        const itemKst = new Date(item.dt * 1000 + 9 * 60 * 60 * 1000);
+        return itemKst.toISOString().slice(0, 10) === tomorrowDateStr;
+      }
     );
 
     if (tomorrowEntries.length === 0) return null;
@@ -292,7 +296,7 @@ export async function fetchWeather(
     const [weatherRes, airRes, forecastRes, locationName] = await Promise.all([
       fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr`),
       fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}`),
-      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr&cnt=16`),
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=kr`),
       locationPromise,
     ]);
 
@@ -311,15 +315,23 @@ export async function fetchWeather(
       5: '위험',
     };
 
+    // 한국 시간(KST) 기준 오늘 날짜
+    const now = new Date();
+    const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const todayStr = kstNow.toISOString().slice(0, 10);
+
     // 오늘 날짜에 해당하는 forecast 항목으로 최고/최저 기온 계산
-    const todayStr = new Date().toISOString().slice(0, 10);
     interface ForecastEntry {
+      dt: number;
       dt_txt: string;
       main: { temp: number };
       pop?: number;
     }
     const todayForecasts: ForecastEntry[] = (forecastData?.list || []).filter(
-      (item: ForecastEntry) => item.dt_txt?.startsWith(todayStr)
+      (item: ForecastEntry) => {
+        const itemKst = new Date(item.dt * 1000 + 9 * 60 * 60 * 1000);
+        return itemKst.toISOString().slice(0, 10) === todayStr;
+      }
     );
 
     // 현재 기온도 포함해서 최고/최저 계산
