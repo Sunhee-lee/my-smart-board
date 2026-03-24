@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { Settings, WeatherData, MealData, TimetableItem, SchoolEvent } from '@/types';
 import { loadSettings } from '@/lib/storage';
-import { fetchAllWeather, fetchWeather, fetchMeal, fetchTimetable, fetchEvents } from '@/lib/api';
+import { fetchAllWeather, fetchWeather, fetchTomorrowWeather, fetchMeal, fetchTimetable, fetchEvents } from '@/lib/api';
 import { THEMES } from '@/lib/theme';
 import WeatherCard from './WeatherCard';
 import MealCard from './MealCard';
@@ -99,7 +99,8 @@ export default function Dashboard() {
     const CACHE_TTL = 30 * 60 * 1000; // 30분
     const COORD_KEY = 'smart-board-geo-cache';
 
-    // 캐시된 날씨 데이터가 있으면 즉시 표시
+    // 캐시된 날씨 데이터가 있으면 오늘 날씨 즉시 표시
+    let usedCache = false;
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
@@ -107,7 +108,7 @@ export default function Dashboard() {
         if (Date.now() - timestamp < CACHE_TTL) {
           setWeather(data);
           setLoading((prev) => ({ ...prev, weather: false }));
-          return;
+          usedCache = true;
         }
       }
     } catch { /* 캐시 오류 무시 */ }
@@ -115,14 +116,26 @@ export default function Dashboard() {
     const loadWeather = async (lat: number, lon: number) => {
       // 좌표 캐싱
       localStorage.setItem(COORD_KEY, JSON.stringify({ lat, lon }));
-      // 오늘+내일 날씨를 한 번에 가져오기 (API 호출 절반으로 감소)
-      const { today, tomorrow } = await fetchAllWeather(lat, lon);
-      if (today && isValidWeather(today)) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: today, timestamp: Date.now() }));
+
+      if (usedCache) {
+        // 오늘 날씨는 캐시 사용 중 → 내일 날씨만 개별 호출
+        const tmrData = await fetchTomorrowWeather(lat, lon);
+        setTomorrowWeather(tmrData);
+      } else {
+        // 오늘+내일 날씨를 한 번에 가져오기
+        const { today, tomorrow } = await fetchAllWeather(lat, lon);
+        if (today && isValidWeather(today)) {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: today, timestamp: Date.now() }));
+        }
+        setWeather(today);
+        // 내일 데이터가 없으면 개별 API로 폴백
+        if (tomorrow) {
+          setTomorrowWeather(tomorrow);
+        } else {
+          fetchTomorrowWeather(lat, lon).then(setTomorrowWeather);
+        }
+        setLoading((prev) => ({ ...prev, weather: false }));
       }
-      setWeather(today);
-      setTomorrowWeather(tomorrow);
-      setLoading((prev) => ({ ...prev, weather: false }));
     };
 
     if (navigator.geolocation) {
@@ -157,7 +170,11 @@ export default function Dashboard() {
         localStorage.setItem(CACHE_KEY, JSON.stringify({ data: today, timestamp: Date.now() }));
       }
       setWeather(today);
-      setTomorrowWeather(tomorrow);
+      if (tomorrow) {
+        setTomorrowWeather(tomorrow);
+      } else {
+        fetchTomorrowWeather(lat, lon).then(setTomorrowWeather);
+      }
       setRefreshingWeather(false);
     };
 
