@@ -159,7 +159,7 @@ async function reverseGeocode(lat: number, lon: number): Promise<GeoResult> {
 
 // ── 기상청 API Hub 공통 유틸 ──
 
-const KMA_BASE = 'https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0';
+const KMA_BASE = '/api/kma/VilageFcstInfoService_2.0';
 
 // 위경도 → 기상청 격자 좌표 변환 (Lambert Conformal Conic)
 function latLonToGrid(lat: number, lon: number): { nx: number; ny: number } {
@@ -332,7 +332,7 @@ function findClosestValue(items: KmaItem[], category: string, targetTime: string
 }
 
 // ── 에어코리아 미세먼지 ──
-const AIRKOREA_BASE = 'https://apis.data.go.kr/B552584/ArpltnInforInqireSvc';
+const AIRKOREA_BASE = '/api/airkorea';
 
 interface AirQualityData { dust: string; pm10: number; pm25: number }
 const DEFAULT_AIR: AirQualityData = { dust: '보통', pm10: 0, pm25: 0 };
