@@ -55,17 +55,17 @@ function getClothingRecommendation(temp: number, icon: string, dust: string): st
   let clothing = '';
 
   if (temp >= 28) {
-    clothing = '반팔, 반바지, 얇은 원피스가 좋아요!';
+    clothing = '반팔, 반바지가 좋아요!';
   } else if (temp >= 23) {
     clothing = '반팔에 얇은 긴바지가 딱이야!';
   } else if (temp >= 17) {
-    clothing = '얇은 가디건이나 긴팔을 챙겨!';
+    clothing = '얇은 가디건이나 바람막이를 챙겨!';
   } else if (temp >= 12) {
-    clothing = '자켓이나 니트를 입으면 좋겠어!';
+    clothing = '외투나 니트를 입으면 좋겠어!';
   } else if (temp >= 6) {
-    clothing = '따뜻한 코트랑 목도리를 챙겨!';
+    clothing = '얇은 코트나 패딩을 챙겨!';
   } else {
-    clothing = '패딩, 장갑, 목도리 꼭 챙기자!';
+    clothing = '패딩, 장갑 꼭 챙기자!';
   }
 
   if (isRain) clothing += ' 우산 필수!';
