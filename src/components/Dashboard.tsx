@@ -258,7 +258,8 @@ export default function Dashboard() {
 
   if (!settings) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${theme.bg}`}>
+      <div className={`min-h-screen flex flex-col items-center justify-center ${theme.bg}`}>
+        <h1 className="font-title text-3xl text-gray-700 mb-4">나의 스마트 보드</h1>
         <div className="animate-pulse text-gray-400 text-lg font-title">로딩 중...</div>
       </div>
     );
