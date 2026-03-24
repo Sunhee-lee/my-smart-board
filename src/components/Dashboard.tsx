@@ -362,7 +362,7 @@ export default function Dashboard() {
       <footer className="max-w-6xl mx-auto px-4 pb-2 flex justify-center">
         <button
           onClick={() => setVisitorStatsOpen(true)}
-          className="text-[9px] text-gray-200/50 hover:text-gray-300 transition-colors cursor-pointer"
+          className="text-[9px] text-gray-300/60 hover:text-gray-400 transition-colors cursor-pointer"
           aria-label="방문 통계"
         >
           created by 이츠써니
