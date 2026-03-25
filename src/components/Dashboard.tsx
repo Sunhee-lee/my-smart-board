@@ -291,7 +291,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-3">
             <h1 className={`font-title text-base sm:text-xl ${theme.headerTitle}`}>
-              {displayName ? `${displayName}의 My스마트보드` : 'My스마트보드'}
+              {displayName ? `${displayName}의 스마트보드` : 'My스마트보드'}
             </h1>
             <button
               onClick={() => setSettingsOpen(true)}
