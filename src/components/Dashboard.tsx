@@ -241,13 +241,10 @@ export default function Dashboard() {
 
   const toggleView = useCallback(() => {
     if (!viewTomorrow && settings) {
-      // 내일 급식/시간표가 없으면 가져오기 (날씨는 이미 로드됨)
-      if (!tomorrowMeal && !tomorrowLoading.meal) {
-        fetchTomorrowData(settings);
-      }
+      fetchTomorrowData(settings);
     }
     setViewTomorrow((prev) => !prev);
-  }, [viewTomorrow, settings, tomorrowMeal, tomorrowLoading, fetchTomorrowData]);
+  }, [viewTomorrow, settings, fetchTomorrowData]);
 
   const handleSaveSettings = (newSettings: Settings) => {
     setSettings(newSettings);
